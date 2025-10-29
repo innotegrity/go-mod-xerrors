@@ -62,7 +62,7 @@ type jsonXErr struct {
 	Message string `json:"message"`
 
 	// WrappedError is the wrapped error, if any.
-	WrappedError error `json:"wrappedError,omitempty"`
+	WrappedError error `json:"wrapped_error,omitempty"`
 }
 
 // jsonStdErr is a version of a standard Go error that is used to marshal the object to JSON.
@@ -169,6 +169,8 @@ func (e *xerr) MarshalJSON() ([]byte, error) {
 			jsonError.WrappedError = &jsonStdError{
 				Message: e.wrappedErr.Error(),
 			}
+		} else {
+			jsonError.WrappedError = e.wrappedErr
 		}
 	}
 	if e.attrs != nil {

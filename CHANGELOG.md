@@ -4,6 +4,10 @@
 
 No unreleased changes
 
+## v0.3.4 (Released 2025-10-29)
+
+* Fixed MarshalJSON so that it includes the wrapped error as well
+
 ## v0.3.3 (Released 2025-10-07)
 
 * Fixed nil pointer bug with wrapped errors
