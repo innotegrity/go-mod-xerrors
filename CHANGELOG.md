@@ -4,6 +4,10 @@
 
 No unreleased changes
 
+## v0.4.0 (Released 2025-11-05)
+
+* Updated required `go` version to `1.23.1`
+
 ## v0.3.4 (Released 2025-10-29)
 
 * Fixed MarshalJSON so that it includes the wrapped error as well
