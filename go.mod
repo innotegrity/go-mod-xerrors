@@ -1,3 +1,3 @@
-module pkg.innotegrity.dev/mod/go/xerrors
+module pkg.innotegrity.dev/go/mod/xerrors
 
 go 1.23.1
