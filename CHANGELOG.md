@@ -4,9 +4,9 @@
 
 No unreleased changes
 
-## v0.5.1 (Released 2026-01-19)
+## v0.5.2 (Released 2026-01-19)
 
-* Updated module name to `pkg.innotegrity.dev/go/mod/xerrors` for consistency with modules and apps
+* Updated module name to `mod.go.innotegrity.dev/xerrors` for consistency with modules and apps
 
 ## v0.4.0 (Released 2025-11-05)
 
