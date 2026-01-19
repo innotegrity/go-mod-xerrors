@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./assets/logo.png" width=150 alt="Error logo" />
+  <img src="./assets/logo.svg" width=150 alt="Error logo" />
 </p>
 
 <h1 align="center">
