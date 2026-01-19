@@ -14,7 +14,5 @@ repos:
   - repo: https://github.com/tekwizely/pre-commit-golang
     rev: v1.0.0-rc.4
     hooks:
+      - id: go-mod-tidy
       - id: go-fmt
-      - id: go-vet
-      - id: go-imports
-      - id: golangci-lint
