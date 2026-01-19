@@ -21,8 +21,8 @@
   <a href="https://en.wikipedia.org/wiki/MIT_License" target="_blank"><img src="https://img.shields.io/badge/license-MIT-blue?style=for-the-badge" alt="MIT License" /></a>
   <a href="#"><img src="https://img.shields.io/badge/support-community-darkgreen?style=for-the-badge" alt="Community Supported" /></a>
   <br />
-  <a href="https://pkg.go.dev/go.innotegrity.dev/xerrors" target="_blank"><img src="https://img.shields.io/badge/go-reference-2a7d98?style=for-the-badge" alt="Go Reference" /></a>
-  <a href="https://goreportcard.com/report/go.innotegrity.dev/xerrors" target="_blank"><img src="https://goreportcard.com/badge/go.innotegrity.dev/xerrors?style=for-the-badge" alt="Go Report Card" /></a>
+  <a href="https://pkg.go.dev/go.innotegrity.dev/mod/xerrors" target="_blank"><img src="https://img.shields.io/badge/go-reference-2a7d98?style=for-the-badge" alt="Go Reference" /></a>
+  <a href="https://goreportcard.com/report/go.innotegrity.dev/mod/xerrors" target="_blank"><img src="https://goreportcard.com/badge/go.innotegrity.dev/mod/xerrors?style=for-the-badge" alt="Go Report Card" /></a>
 </p>
 <br />
 
@@ -36,9 +36,9 @@
 
 ## 👁️ Overview
 
-`go.innotegrity.dev/xerrors` is an extended version of the built-in Golang `error` interface and includes an implementation of the interface.  This extended version includes an integer code attached to the error as well as any arbitrary attributes you wish to attach to the error along with the ability to capture caller information when the error is created.
+`go.innotegrity.dev/mod/xerrors` is an extended version of the built-in Golang `error` interface and includes an implementation of the interface.  This extended version includes an integer code attached to the error as well as any arbitrary attributes you wish to attach to the error along with the ability to capture caller information when the error is created.
 
-Please review the [module documentation](https://pkg.go.dev/go.innotegrity.dev/xerrors) for details on how to properly use the functions and types contained in this module.
+Please review the [module documentation](https://pkg.go.dev/go.innotegrity.dev/mod/xerrors) for details on how to properly use the functions and types contained in this module.
 
 ## ✅ Requirements
 

@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"go.innotegrity.dev/xerrors"
+	"go.innotegrity.dev/mod/xerrors"
 )
 
 func TestError(t *testing.T) {
