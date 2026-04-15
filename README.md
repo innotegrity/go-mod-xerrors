@@ -11,8 +11,6 @@
 </p>
 
 <p align="center">
-  <a href="https://code.visualstudio.com/"><img src="https://img.shields.io/badge/VSCode-0078D4?style=for-the-badge&logo=visual%20studio%20code&logo=visual-studio-code&logoColor=white" alt="VSCode" /></a>
-  <a href="https://go.dev"><img src="https://img.shields.io/badge/Go-02A8EF?style=for-the-badge&logo=go&logoColor=white" alt="Go" /></a>
   <a href="#"><img src="https://img.shields.io/badge/Linux-a80030?style=for-the-badge&logo=linux&logoColor=white" alt="Linux" /></a>
   <a href="#"><img src="https://img.shields.io/badge/mac%20os-000000?style=for-the-badge&logo=apple&logoColor=white" alt="MacOS" /></a>
   <a href="#"><img src="https://img.shields.io/badge/windows-0078D7?style=for-the-badge&logo=windows&logoColor=white" alt="Windows" /></a>
@@ -23,6 +21,9 @@
   <br />
   <a href="https://pkg.go.dev/go.innotegrity.dev/mod/xerrors" target="_blank"><img src="https://img.shields.io/badge/go-reference-2a7d98?style=for-the-badge" alt="Go Reference" /></a>
   <a href="https://goreportcard.com/report/go.innotegrity.dev/mod/xerrors" target="_blank"><img src="https://goreportcard.com/badge/go.innotegrity.dev/mod/xerrors?style=for-the-badge" alt="Go Report Card" /></a>
+  <br />
+  <a href="https://app.codacy.com/gl/innotegrity/xerrors/dashboard?utm_source=gl&utm_medium=referral&utm_content=&utm_campaign=Badge_grade" target="_blank"><img src="https://img.shields.io/codacy/grade/62dd32b225c044c1a8f7f75e50ecb427?style=for-the-badge" alt="Code Quality" /></a>
+  <a href="https://app.codacy.com/gl/innotegrity/xerrors/dashboard?utm_source=gl&utm_medium=referral&utm_content=&utm_campaign=Badge_coverage" target="_blank"><img src="https://img.shields.io/codacy/coverage/62dd32b225c044c1a8f7f75e50ecb427?style=for-the-badge" alt="Code Quality" /></a>
 </p>
 <br />
 
@@ -42,7 +43,7 @@ Please review the [module documentation](https://pkg.go.dev/go.innotegrity.dev/m
 
 ## ✅ Requirements
 
-This module is supported for Go v1.25.9 and later.
+This module is supported for Go v1.25.9 and later running on Linux, MacOS and Windows operating systems.
 
 ## 📃 License
 

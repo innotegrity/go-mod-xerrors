@@ -7,4 +7,5 @@ Thumbs.db
 
 # build/test artifacts
 .gitlab-ci-local/
+.gitlab-ci-local-variables.yml
 coverage
