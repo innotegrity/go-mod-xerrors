@@ -4,6 +4,11 @@
 
 No unreleased changes
 
+## v0.7.0 (Released 2026-04-15)
+
+* Added unit test to cover code
+* Upgraded library to require Go 1.25.9 or later for security purposes
+
 ## v0.6.0 (Released 2026-02-13)
 
 * Updated module name to `go.innotegrity.dev/mod/xerrors` for consistency with modules and apps
