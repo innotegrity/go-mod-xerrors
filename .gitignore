@@ -9,3 +9,5 @@ Thumbs.db
 .gitlab-ci-local/
 .gitlab-ci-local-variables.yml
 coverage
+.codacy/*
+!.codacy/codacy.yaml
