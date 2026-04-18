@@ -21,6 +21,12 @@ repos:
       - id: trailing-whitespace
         args:
           - '--markdown-linebreak-ext=md'
+  - repo: https://github.com/golangci/golangci-lint
+    rev: v2.11.4
+    hooks:
+      - id: golangci-lint
+        args:
+          - '--config=.golangci.yml'
   - repo: local
     hooks:
       - id: sonar-secrets

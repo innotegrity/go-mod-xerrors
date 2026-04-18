@@ -29,9 +29,9 @@ jobs:
         uses: sonarsource/sonarqube-scan-action@v7
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         with:
           args: >
+            -Dsonar.organization=innotegrity
             -Dsonar.projectKey=innotegrity_go-mod-xerrors
             -Dsonar.sources=.
             -Dsonar.go.coverage.reportPaths=coverage.out
