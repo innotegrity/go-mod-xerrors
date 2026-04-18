@@ -2,9 +2,6 @@
 .DS_Store
 Thumbs.db
 
-# IDE artifacts
-.cursor/rules/codacy.mdc
-
 # build/test artifacts
 .gitlab-ci-local/
 .gitlab-ci-local-variables.yml

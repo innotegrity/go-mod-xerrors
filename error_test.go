@@ -178,7 +178,7 @@ func TestAttrs_ReturnsCurrentAttributes(t *testing.T) {
 		t.Fatalf("expected nil attrs before adding attributes, got %#v", e.Attrs())
 	}
 
-	e.WithAttr("a", 1).WithAttrs(map[string]any{"b": "two"})
+	_ = e.WithAttr("a", 1).WithAttrs(map[string]any{"b": "two"})
 	attrs := e.Attrs()
 	if attrs["a"] != 1 || attrs["b"] != "two" {
 		t.Fatalf("unexpected attrs map from Attrs(): %#v", attrs)

@@ -4,22 +4,29 @@ repos:
     hooks:
       - id: check-added-large-files
         args:
-          - --maxkb=4096
+          - '--maxkb=4096'
+      #- id: check-json
+      - id: check-symlinks
       - id: check-shebang-scripts-are-executable
-      - id: detect-private-key
+      #- id: check-yaml
       - id: end-of-file-fixer
+      - id: mixed-line-ending
+        args:
+          - '--fix=auto'
+      - id: pretty-format-json
+        args:
+          - '--autofix'
+          - '--indent=4'
+          - '--no-sort-keys'
       - id: trailing-whitespace
         args:
-          - --markdown-linebreak-ext=md
-  - repo: https://github.com/tekwizely/pre-commit-golang
-    rev: v1.0.0-rc.4
-    hooks:
-      - id: go-mod-tidy
-      - id: go-fmt
+          - '--markdown-linebreak-ext=md'
   - repo: local
     hooks:
-      - id: codacy-cli
-        name: Codacy CLI
-        entry: codacy-cli
+      - id: sonar-secrets
+        name: Sonar secrets scan
+        entry: sonar analyze secrets --
         language: system
-        pass_filenames: false
+        pass_filenames: true
+        stages:
+          - pre-push

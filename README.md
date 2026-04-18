@@ -1,37 +1,43 @@
-<p align="center">
-  <img src="./assets/logo.svg" width=150 alt="Error logo" />
-</p>
-
-<h1 align="center">
-  Go xerrors Package
-</h1>
-
-<p align="center">
-  An extended Golang error library.
-</p>
-
-<p align="center">
-  <a href="#"><img src="https://img.shields.io/badge/Linux-a80030?style=for-the-badge&logo=linux&logoColor=white" alt="Linux" /></a>
-  <a href="#"><img src="https://img.shields.io/badge/mac%20os-000000?style=for-the-badge&logo=apple&logoColor=white" alt="MacOS" /></a>
-  <a href="#"><img src="https://img.shields.io/badge/windows-0078D7?style=for-the-badge&logo=windows&logoColor=white" alt="Windows" /></a>
-  <br />
-  <a href="#"><img src="https://img.shields.io/badge/stability-alpha-red?style=for-the-badge" alt="alpha Stability" /></a>
-  <a href="https://en.wikipedia.org/wiki/MIT_License" target="_blank"><img src="https://img.shields.io/badge/license-MIT-blue?style=for-the-badge" alt="MIT License" /></a>
-  <a href="#"><img src="https://img.shields.io/badge/support-community-darkgreen?style=for-the-badge" alt="Community Supported" /></a>
-  <br />
-  <a href="https://pkg.go.dev/go.innotegrity.dev/mod/xerrors" target="_blank"><img src="https://img.shields.io/badge/go-reference-2a7d98?style=for-the-badge" alt="Go Reference" /></a>
-  <a href="https://goreportcard.com/report/go.innotegrity.dev/mod/xerrors" target="_blank"><img src="https://goreportcard.com/badge/go.innotegrity.dev/mod/xerrors?style=for-the-badge" alt="Go Report Card" /></a>
-  <br />
-  <a href="https://app.codacy.com/gl/innotegrity/xerrors/dashboard?utm_source=gl&utm_medium=referral&utm_content=&utm_campaign=Badge_grade" target="_blank"><img src="https://img.shields.io/codacy/grade/62dd32b225c044c1a8f7f75e50ecb427?style=for-the-badge" alt="Code Quality" /></a>
-  <a href="https://app.codacy.com/gl/innotegrity/xerrors/dashboard?utm_source=gl&utm_medium=referral&utm_content=&utm_campaign=Badge_coverage" target="_blank"><img src="https://img.shields.io/codacy/coverage/62dd32b225c044c1a8f7f75e50ecb427?style=for-the-badge" alt="Code Quality" /></a>
-</p>
-<br />
+<div align="center">
+  <img src="./assets/logo.svg" width=150 alt="error logo" /><br />
+  <h1 align="center">Extended Error Package for Go</h1>
+  <p align="center">
+    A module for extending Golang error capabilities
+  </p>
+</div>
+<hr />
+<div align="center">
+  <p>
+    <b><em>Built using</em></b><br />
+    <a href="https://cursor.com/" target="_blank"><img src="https://img.shields.io/badge/cursor-000000?style=for-the-badge&logo=cursor&logoColor=white" alt="Cursor" /></a>
+    <a href="https://go.dev" target="_blank"><img src="https://img.shields.io/badge/Go-02A8EF?style=for-the-badge&logo=go&logoColor=white" alt="Go" /></a>
+    <a href="https://codacy.com/" target="_blank"><img src="https://img.shields.io/badge/codacy-222F29?style=for-the-badge&logo=codacy" alt="Codacy"></a>
+  </p>
+  <p>
+    <b><em>Supported on</em></b><br />
+    <a href="#"><img src="https://img.shields.io/badge/Linux-yellow?style=for-the-badge&logo=linux&logoColor=black" alt="Linux" /></a>
+    <a href="#"><img src="https://img.shields.io/badge/mac%20os-000000?style=for-the-badge&logo=apple&logoColor=white" alt="MacOS" /></a>
+    <a href="#"><img src="https://img.shields.io/badge/windows-0078D7?style=for-the-badge&logo=windows&logoColor=white" alt="Windows" /></a>
+  </p>
+  <p>
+    <a href="#"><img src="https://img.shields.io/badge/stability-alpha-red?style=for-the-badge" alt="alpha Stability" /></a>
+    <a href="https://en.wikipedia.org/wiki/MIT_License" target="_blank"><img src="https://img.shields.io/badge/license-MIT-blue?style=for-the-badge" alt="MIT License" /></a>
+    <a href="#"><img src="https://img.shields.io/badge/support-community-darkgreen?style=for-the-badge" alt="Community Supported" /></a>
+    <br />
+    <a href="https://pkg.go.dev/go.innotegrity.dev/mod/xerrors" target="_blank"><img src="https://img.shields.io/badge/go-reference-2a7d98?style=for-the-badge" alt="Go Reference" /></a>
+    <a href="https://goreportcard.com/report/go.innotegrity.dev/mod/xerrors" target="_blank"><img src="https://goreportcard.com/badge/go.innotegrity.dev/mod/xerrors?style=for-the-badge" alt="Go Report Card" /></a>
+    <br />
+    <a href="https://app.codacy.com/gl/innotegrity/xerrors/dashboard?utm_source=gl&utm_medium=referral&utm_content=&utm_campaign=Badge_grade" target="_blank"><img src="https://img.shields.io/codacy/grade/62dd32b225c044c1a8f7f75e50ecb427?style=for-the-badge" alt="Code Quality" /></a>
+    <a href="https://app.codacy.com/gl/innotegrity/xerrors/dashboard?utm_source=gl&utm_medium=referral&utm_content=&utm_campaign=Badge_coverage" target="_blank"><img src="https://img.shields.io/codacy/coverage/62dd32b225c044c1a8f7f75e50ecb427?style=for-the-badge" alt="Code Coverage" /></a>
+  </p>
+</div>
 
 <!-- omit in toc -->
 ## Table of Contents
 
 - [👁️ Overview](#️-overview)
 - [✅ Requirements](#-requirements)
+- [👨‍💻 Developer Notes](#-developer-notes)
 - [📃 License](#-license)
 - [❓ Questions, Issues and Feature Requests](#-questions-issues-and-feature-requests)
 
@@ -44,6 +50,23 @@ Please review the [module documentation](https://pkg.go.dev/go.innotegrity.dev/m
 ## ✅ Requirements
 
 This module is supported for Go v1.25.9 and later running on Linux, MacOS and Windows operating systems.
+
+## 👨‍💻 Developer Notes
+
+For consistency, security and best practices, the maintainers of this repository utilize the following toolset:
+
+- [Cursor IDE](https://cursor.com/product) with the following extensions:
+
+    - [ESLint](https://marketplace.cursorapi.com/items/?itemName=dbaeumer.vscode-eslint)
+    - [Go](https://marketplace.cursorapi.com/items/?itemName=golang.Go)
+    - [Markdown All in One](https://marketplace.cursorapi.com/items/?itemName=yzhang.markdown-all-in-one)
+    - [SonarQube for IDE](https://marketplace.cursorapi.com/items/?itemName=SonarSource.sonarlint-vscode)
+    - [YAML](https://marketplace.cursorapi.com/items/?itemName=redhat.vscode-yaml)
+
+- [golangci-lint](https://github.com/golangci/golangci-lint) for `.go` files
+- [eslint](https://esling.org) for `.md`, `.json` and `.yaml` files
+- [pre-commit](https://pre-commit.com/) for checks prior to commits
+- [SonarQube CLI](https://github.com/SonarSource/sonarqube-cli) for secrets checking during pre-commit
 
 ## 📃 License
 

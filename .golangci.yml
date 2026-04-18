@@ -1,0 +1,29 @@
+version: "2"
+
+linters:
+  default: all
+  disable:
+    - exhaustruct
+    - wsl
+  settings:
+    cyclop:
+      max-complexity: 20
+    depguard:
+      rules:
+        main:
+          list-mode: original
+          allow:
+            - $gostd
+            - github.com
+            - gopkg.in
+            - golang.org
+            - go.innotegrity.dev
+    lll:
+      line-length: 120
+
+formatters:
+  enable:
+    - gofumpt
+    - goimports
+    - golines
+    - swaggo

@@ -1,0 +1,6 @@
+{
+    "sonarlint.connectedMode.project": {
+        "connectionId": "innotegrity",
+        "projectKey": "innotegrity_go-mod-xerrors"
+    }
+}
