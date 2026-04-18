@@ -415,6 +415,21 @@ func TestUnmarshalJSON_InvalidJSON(t *testing.T) {
 	}
 }
 
+func TestUnmarshalJSON_DirectCallInvalidPayload(t *testing.T) {
+	t.Parallel()
+
+	var dest xerrors.Error
+
+	err := (&dest).UnmarshalJSON([]byte(`not json`))
+	if err == nil {
+		t.Fatal("expected error")
+	}
+
+	if !strings.Contains(err.Error(), "unmarshal extended error from JSON") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
 func TestUnmarshalJSON_WrappedErrorNotObject(t *testing.T) {
 	t.Parallel()
 
@@ -495,6 +510,24 @@ func TestUnmarshalJSON_XErrorKindMissingNested(t *testing.T) {
 	err := json.Unmarshal([]byte(raw), &dest)
 	if err == nil {
 		t.Fatal("expected error")
+	}
+}
+
+func TestUnmarshalJSON_XErrorNestedInnerInvalid(t *testing.T) {
+	t.Parallel()
+
+	// [wrappedEnvelope.nested] decodes, but inner [*Error.UnmarshalJSON] fails on the nested object.
+	raw := `{"code":1,"message":"outer","wrappedError":{"kind":"xerror","nested":{"code":1,"message":true}}}`
+
+	var dest xerrors.Error
+
+	err := json.Unmarshal([]byte(raw), &dest)
+	if err == nil {
+		t.Fatal("expected error")
+	}
+
+	if !strings.Contains(err.Error(), "unmarshal extended error from JSON") {
+		t.Fatalf("unexpected error: %v", err)
 	}
 }
 

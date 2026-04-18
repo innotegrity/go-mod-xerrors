@@ -30,6 +30,12 @@ var (
 	errWrappedMissingKind = errors.New(`xerrors: wrappedError must include "kind" ("xerror" or "std")`)
 )
 
+// jsonMarshalWrappedEnvelope serializes [wrappedEnvelope] for [Error.MarshalJSON]. Tests may replace it to cover the
+// marshal error path (nested [Error.MarshalJSON] success always yields valid [wrappedEnvelope.Nested] JSON).
+//
+//nolint:gochecknoglobals // intentional indirection for tests; default is [json.Marshal].
+var jsonMarshalWrappedEnvelope = json.Marshal
+
 // Error is an extended error that holds an error code, message, caller information, attributes, and a wrapped error.
 type Error struct {
 	ErrorOptions
@@ -200,7 +206,7 @@ func (e *Error) MarshalJSON() ([]byte, error) {
 			return nil, fmt.Errorf(errFmtMarshalJSON, err)
 		}
 
-		enc.WrappedError, err = json.Marshal(env)
+		enc.WrappedError, err = jsonMarshalWrappedEnvelope(env)
 		if err != nil {
 			return nil, fmt.Errorf(errFmtMarshalJSON, err)
 		}

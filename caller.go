@@ -47,7 +47,7 @@ func DefaultCallerInfo() *CallerInfo {
 //
 // If the caller information is available, the function returns a [CallerInfo] object containing the caller information.
 func getCallerInfo(runtimeSkip int, stripPrefixes []string) *CallerInfo {
-	pc, file, line, ok := runtime.Caller(1 + runtimeSkip) // skip the getCallerInfo call itself
+	pc, _, _, ok := runtime.Caller(1 + runtimeSkip) // skip the getCallerInfo call itself
 	if !ok {
 		return DefaultCallerInfo()
 	}
@@ -55,6 +55,8 @@ func getCallerInfo(runtimeSkip int, stripPrefixes []string) *CallerInfo {
 	frames := runtime.CallersFrames([]uintptr{pc})
 	fr, _ := frames.Next()
 
+	file := fr.File
+	line := fr.Line
 	fnName := fr.Function
 
 	for _, prefix := range stripPrefixes {

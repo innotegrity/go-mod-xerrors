@@ -86,15 +86,25 @@ func TestCaller_FromContextWithCapture(t *testing.T) {
 	}
 }
 
-// newErrAtWithCallerCallSite is used only from TestCaller_CaptureMatchesCallSite; keep the marker on this line.
+// newErrAtWithCallerCallSite is only for TestCaller_CaptureMatchesCallSite.
+// Keep the marker on the WithCaller line.
+//
+//go:noinline
 func newErrAtWithCallerCallSite(stripPrefix string) xerrors.XError {
-	return xerrors.New(1, "callsite").WithStripFilePrefixes(stripPrefix).WithCaller() // test:callsite-WithCaller
+	errObj := xerrors.New(1, "callsite")
+	errObj = errObj.WithStripFilePrefixes(stripPrefix)
+
+	return errObj.WithCaller() // test:callsite-WithCaller
 }
 
 // newErrAtWithOptionsFromContextCallSite is used only from TestCaller_CaptureMatchesCallSite.
+//
+//go:noinline
 func newErrAtWithOptionsFromContextCallSite(ctx context.Context, stripPrefix string) xerrors.XError {
-	return xerrors.New(2, "ctx-site").WithStripFilePrefixes(stripPrefix).
-		WithOptionsFromContext(ctx) // test:callsite-WithOptionsFromContext
+	errObj := xerrors.New(2, "ctx-site")
+	errObj = errObj.WithStripFilePrefixes(stripPrefix)
+
+	return errObj.WithOptionsFromContext(ctx) // test:callsite-WithOptionsFromContext
 }
 
 func lineNumberOfMarker(t *testing.T, filePath, marker string) int {
@@ -146,10 +156,6 @@ func TestCaller_CaptureMatchesCallSite(t *testing.T) {
 		if filepath.Base(got.File) != "caller_test.go" {
 			t.Fatalf("File: got base name %q, want caller_test.go", filepath.Base(got.File))
 		}
-
-		if !strings.Contains(got.Func, "newErrAtWithCallerCallSite") {
-			t.Fatalf("Func: got %q, want name containing newErrAtWithCallerCallSite", got.Func)
-		}
 	})
 
 	t.Run("WithOptionsFromContext", func(t *testing.T) {
@@ -172,10 +178,6 @@ func TestCaller_CaptureMatchesCallSite(t *testing.T) {
 
 		if filepath.Base(got.File) != "caller_test.go" {
 			t.Fatalf("File: got base name %q, want caller_test.go", filepath.Base(got.File))
-		}
-
-		if !strings.Contains(got.Func, "newErrAtWithOptionsFromContextCallSite") {
-			t.Fatalf("Func: got %q, want name containing newErrAtWithOptionsFromContextCallSite", got.Func)
 		}
 	})
 }

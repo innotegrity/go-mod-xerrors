@@ -12,4 +12,7 @@
         "formatting.gofumpt": true,
         "ui.diagnostic.staticcheck": false,
     },
+    "go.testFlags": [
+        "-covermode=atomic"
+    ],
 }
