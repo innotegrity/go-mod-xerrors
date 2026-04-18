@@ -1,4 +1,4 @@
-name: SonarQube analysis
+name: code-analysis
 
 on:
   push:
@@ -35,10 +35,10 @@ jobs:
             -Dsonar.projectKey=innotegrity_go-mod-xerrors
             -Dsonar.sources=.
             -Dsonar.go.coverage.reportPaths=coverage.out
+            -Dsonar.coverage.exclusions=**/*_test.go
 
       - name: SonarQube Quality Gate Check
         uses: sonarsource/sonarqube-quality-gate-action@v1
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          pollingTimeoutSec: 600
+        timeout-minutes: 5

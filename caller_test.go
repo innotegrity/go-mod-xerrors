@@ -1,133 +1,181 @@
 package xerrors_test
 
 import (
-	"errors"
+	"bytes"
+	"context"
 	"os"
+	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
 	"go.innotegrity.dev/mod/xerrors"
 )
 
-func TestCaller_DefaultWhenCaptureDisabled(t *testing.T) {
-	xerrors.CaptureCallerInfo(false)
-	xerrors.StripCallerFilePrefixes()
+func TestCaller_DefaultWhenNotCaptured(t *testing.T) {
+	t.Parallel()
 
-	e := xerrors.New(1, "msg")
-	c := e.Caller()
+	errNoCaller := xerrors.New(1, "msg")
 
-	if c.File != "???" || c.Line != 0 || c.Func != "???" {
-		t.Fatalf("expected default caller info, got %+v", c)
+	caller := errNoCaller.Caller()
+
+	badDefault := caller.File != xerrors.UnknownCallerFile ||
+		caller.Line != -1 ||
+		caller.Func != xerrors.UnknownCallerFunc
+	if badDefault {
+		t.Fatalf("expected default caller info, got %+v", caller)
 	}
 }
 
-func TestCaller_CapturedAndPrefixStripped(t *testing.T) {
-	wd, err := os.Getwd()
+func TestCaller_FromWithCaller(t *testing.T) {
+	t.Parallel()
+
+	workDir, err := os.Getwd()
 	if err != nil {
-		t.Fatalf("failed to get cwd: %v", err)
+		t.Fatalf("getwd: %v", err)
 	}
 
-	xerrors.CaptureCallerInfo(true)
-	xerrors.StripCallerFilePrefixes(wd + "/")
-	t.Cleanup(func() {
-		xerrors.CaptureCallerInfo(false)
-		xerrors.StripCallerFilePrefixes()
+	errWithCaller := xerrors.New(1, "msg").
+		WithStripFilePrefixes(workDir + string(os.PathSeparator)).
+		WithCaller()
+
+	caller := errWithCaller.Caller()
+
+	unknown := caller.File == xerrors.UnknownCallerFile ||
+		caller.Line <= 0 ||
+		caller.Func == xerrors.UnknownCallerFunc
+	if unknown {
+		t.Fatalf("expected captured caller, got %+v", caller)
+	}
+
+	if strings.HasPrefix(caller.File, workDir) {
+		t.Fatalf("expected stripped file prefix, got %q", caller.File)
+	}
+}
+
+func TestCaller_FromContextWithCapture(t *testing.T) {
+	t.Parallel()
+
+	workDir, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("getwd: %v", err)
+	}
+
+	prefix := workDir + string(os.PathSeparator)
+
+	ctx := xerrors.ContextWithErrorOptions(context.Background(),
+		nil,
+		xerrors.WithCaptureCaller(),
+		xerrors.WithSkipBias(0),
+		xerrors.WithStripFilePrefixes(prefix),
+	)
+
+	errFromCtx := xerrors.New(2, "ctx").WithOptionsFromContext(ctx)
+
+	caller := errFromCtx.Caller()
+
+	unknown := caller.File == xerrors.UnknownCallerFile ||
+		caller.Line <= 0 ||
+		caller.Func == xerrors.UnknownCallerFunc
+	if unknown {
+		t.Fatalf("expected captured caller from context, got %+v", caller)
+	}
+
+	if strings.HasPrefix(caller.File, prefix) {
+		t.Fatalf("expected stripped file prefix, got %q", caller.File)
+	}
+}
+
+// newErrAtWithCallerCallSite is used only from TestCaller_CaptureMatchesCallSite; keep the marker on this line.
+func newErrAtWithCallerCallSite(stripPrefix string) xerrors.XError {
+	return xerrors.New(1, "callsite").WithStripFilePrefixes(stripPrefix).WithCaller() // test:callsite-WithCaller
+}
+
+// newErrAtWithOptionsFromContextCallSite is used only from TestCaller_CaptureMatchesCallSite.
+func newErrAtWithOptionsFromContextCallSite(ctx context.Context, stripPrefix string) xerrors.XError {
+	return xerrors.New(2, "ctx-site").WithStripFilePrefixes(stripPrefix).
+		WithOptionsFromContext(ctx) // test:callsite-WithOptionsFromContext
+}
+
+func lineNumberOfMarker(t *testing.T, filePath, marker string) int {
+	t.Helper()
+
+	data, err := os.ReadFile(filePath) //nolint:gosec // test reads this file via path from runtime.Caller
+	if err != nil {
+		t.Fatalf("read %s: %v", filePath, err)
+	}
+
+	lines := bytes.Split(data, []byte("\n"))
+	for lineIdx, line := range lines {
+		if bytes.Contains(line, []byte(marker)) {
+			return lineIdx + 1
+		}
+	}
+
+	t.Fatalf("marker %q not found in %s", marker, filePath)
+
+	return 0
+}
+
+func TestCaller_CaptureMatchesCallSite(t *testing.T) {
+	t.Parallel()
+
+	_, thisFile, _, ok := runtime.Caller(0)
+	if !ok {
+		t.Fatal("runtime.Caller failed")
+	}
+
+	workDir, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("getwd: %v", err)
+	}
+
+	prefix := workDir + string(os.PathSeparator)
+
+	t.Run("WithCaller", func(t *testing.T) {
+		t.Parallel()
+
+		wantLine := lineNumberOfMarker(t, thisFile, "test:callsite-WithCaller")
+		errObj := newErrAtWithCallerCallSite(prefix)
+		got := errObj.Caller()
+
+		if got.Line != wantLine {
+			t.Fatalf("Line: got %d, want %d (source line of WithCaller call)", got.Line, wantLine)
+		}
+
+		if filepath.Base(got.File) != "caller_test.go" {
+			t.Fatalf("File: got base name %q, want caller_test.go", filepath.Base(got.File))
+		}
+
+		if !strings.Contains(got.Func, "newErrAtWithCallerCallSite") {
+			t.Fatalf("Func: got %q, want name containing newErrAtWithCallerCallSite", got.Func)
+		}
 	})
 
-	e := xerrors.New(1, "msg")
-	c := e.Caller()
+	t.Run("WithOptionsFromContext", func(t *testing.T) {
+		t.Parallel()
 
-	if c.File == "???" || c.Line == 0 || c.Func == "???" {
-		t.Fatalf("expected caller info to be captured, got %+v", c)
-	}
-	if strings.HasPrefix(c.File, wd+"/") {
-		t.Fatalf("expected prefix %q to be stripped from %q", wd+"/", c.File)
-	}
-	if !strings.HasSuffix(c.File, "_test.go") {
-		t.Fatalf("expected test file suffix in caller file, got %q", c.File)
-	}
-}
+		wantLine := lineNumberOfMarker(t, thisFile, "test:callsite-WithOptionsFromContext")
 
-func TestGetCallerInfo_ReturnsCallerDetails(t *testing.T) {
-	wd, err := os.Getwd()
-	if err != nil {
-		t.Fatalf("failed to get cwd: %v", err)
-	}
+		ctx := xerrors.ContextWithErrorOptions(context.Background(),
+			xerrors.WithCaptureCaller(),
+			xerrors.WithSkipBias(0),
+			xerrors.WithStripFilePrefixes(prefix),
+		)
 
-	xerrors.StripCallerFilePrefixes(wd + "/")
-	t.Cleanup(func() {
-		xerrors.StripCallerFilePrefixes()
+		errObj := newErrAtWithOptionsFromContextCallSite(ctx, prefix)
+		got := errObj.Caller()
+
+		if got.Line != wantLine {
+			t.Fatalf("Line: got %d, want %d (source line of WithOptionsFromContext call)", got.Line, wantLine)
+		}
+
+		if filepath.Base(got.File) != "caller_test.go" {
+			t.Fatalf("File: got base name %q, want caller_test.go", filepath.Base(got.File))
+		}
+
+		if !strings.Contains(got.Func, "newErrAtWithOptionsFromContextCallSite") {
+			t.Fatalf("Func: got %q, want name containing newErrAtWithOptionsFromContextCallSite", got.Func)
+		}
 	})
-
-	c := helperGetCallerInfo()
-	if c.File == "???" || c.Line == 0 || c.Func == "???" {
-		t.Fatalf("expected non-default caller info, got %+v", c)
-	}
-	if strings.HasPrefix(c.File, wd+"/") {
-		t.Fatalf("expected stripped file prefix, got %q", c.File)
-	}
-}
-
-func TestGetCallerInfo_RuntimeCallerFailure(t *testing.T) {
-	// Use an extreme skip value so runtime.Caller cannot resolve a stack frame.
-	c := xerrors.GetCallerInfo(1 << 20)
-	if c.File != "???" || c.Line != 0 || c.Func != "???" {
-		t.Fatalf("expected default caller info when runtime.Caller fails, got %+v", *c)
-	}
-}
-
-func helperGetCallerInfo() xerrors.CallerInfo {
-	return *xerrors.GetCallerInfo(0)
-}
-
-func TestCaller_CapturedForNewfWrapAndWrapf(t *testing.T) {
-	wd, err := os.Getwd()
-	if err != nil {
-		t.Fatalf("failed to get cwd: %v", err)
-	}
-
-	xerrors.CaptureCallerInfo(true)
-	xerrors.StripCallerFilePrefixes(wd + "/")
-	t.Cleanup(func() {
-		xerrors.CaptureCallerInfo(false)
-		xerrors.StripCallerFilePrefixes()
-	})
-
-	base := errors.New("base")
-	tests := []struct {
-		name string
-		make func() xerrors.Error
-	}{
-		{
-			name: "newf",
-			make: func() xerrors.Error {
-				return xerrors.Newf(1, "formatted %d", 7)
-			},
-		},
-		{
-			name: "wrap",
-			make: func() xerrors.Error {
-				return xerrors.Wrap(2, base, "wrapped")
-			},
-		},
-		{
-			name: "wrapf",
-			make: func() xerrors.Error {
-				return xerrors.Wrapf(3, base, "wrapped %s", "formatted")
-			},
-		},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			e := tc.make()
-			c := e.Caller()
-			if c.File == "???" || c.Line == 0 || c.Func == "???" {
-				t.Fatalf("expected captured caller info, got %+v", c)
-			}
-			if strings.HasPrefix(c.File, wd+"/") {
-				t.Fatalf("expected stripped file prefix in caller file, got %q", c.File)
-			}
-		})
-	}
 }

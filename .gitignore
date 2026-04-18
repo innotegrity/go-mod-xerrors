@@ -3,8 +3,5 @@
 Thumbs.db
 
 # build/test artifacts
-.gitlab-ci-local/
-.gitlab-ci-local-variables.yml
+cover.out
 coverage
-.codacy/*
-!.codacy/codacy.yaml

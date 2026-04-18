@@ -1,4 +1,4 @@
-name: golangci-lint
+name: code-lint
 
 on:
   push:
@@ -10,11 +10,9 @@ on:
 
 permissions:
   contents: read
-  # Optional: allow read access to pull requests. Use with `only-new-issues` option.
-  # pull-requests: read
 
 jobs:
-  golangci:
+  golangci-lint:
     name: lint
     runs-on: ubuntu-latest
     steps:
@@ -29,3 +27,19 @@ jobs:
         with:
           version: v2.11
           args: --config=.golangci.yml
+
+  markdownlint:
+    name: markdownlint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.25'
+
+      - name: markdownlint
+        uses: DavidAnson/markdownlint-cli2-action@v23
+        with:
+          config: .markdownlint.json
+          globs: '**/*.md'

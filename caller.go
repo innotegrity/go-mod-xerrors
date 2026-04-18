@@ -3,40 +3,15 @@ package xerrors
 import (
 	"runtime"
 	"strings"
-	"sync"
 )
 
 const (
-	_unknownString = "???"
+	// UnknownCallerFile is the string used to indicate that the caller file is unknown.
+	UnknownCallerFile = "<unknown>"
+
+	// UnknownCallerFunc is the string used to indicate that the caller function is unknown.
+	UnknownCallerFunc = "<unknown>"
 )
-
-var (
-	_captureCaller      = false
-	_callerFilePrefixes = []string{}
-	_callerMutex        sync.Mutex
-)
-
-// CaptureCallerInfo controls whether the caller info should be captured when a new error is generated.
-//
-// This function enables or disables the capture of the caller information globally for this package.  This call is
-// thread-safe.
-func CaptureCallerInfo(enable bool) {
-	_callerMutex.Lock()
-	_captureCaller = enable
-	_callerMutex.Unlock()
-}
-
-// StripCallerFilePrefixes allows you to specify a list of file prefixes that should be stripped from the file path
-// when capturing the caller information.
-//
-// Only the first matching prefix will be stripped from the file path.
-//
-// This function affects all [CallerInfo] objects generated globally by this package.  This call is thread-safe.
-func StripCallerFilePrefixes(prefixes ...string) {
-	_callerMutex.Lock()
-	_callerFilePrefixes = prefixes
-	_callerMutex.Unlock()
-}
 
 // CallerInfo holds information about the location from which the error was generated.
 type CallerInfo struct {
@@ -50,38 +25,42 @@ type CallerInfo struct {
 	Func string `json:"func"`
 }
 
-// DefaultCallerInfo returns a default [CallerInfo] that indicates that no caller information was captured.
+// DefaultCallerInfo returns a default [CallerInfo] struct with unknown caller file, line, and function.
 func DefaultCallerInfo() *CallerInfo {
 	return &CallerInfo{
-		File: _unknownString,
-		Line: 0,
-		Func: _unknownString,
+		File: UnknownCallerFile,
+		Line: -1,
+		Func: UnknownCallerFunc,
 	}
 }
 
-// GetCallerInfo retrieves the file path, line number, and function name of the caller, formatting the file path to
-// be relative to the package directory.
+// getCallerInfo retrieves the caller information from the runtime stack.
+//
+// The 'runtimeSkip' parameter indicates how many stack frames to ascend with 0 being the immediate caller of
+// this function.
+//
+// The 'stripPrefixes' parameter is a list of file path prefixes to strip from the caller file path.
+//
+// The function returns a [CallerInfo] object containing the caller information.
 //
 // If the caller information is not available, a default [CallerInfo] is returned.
 //
-// The 'skip' parameter indicates how many stack frames to ascend with 0 being the immediate caller of this function.
-//
-// This function does not have to be called directly if you are using the [New], [Newf], [Wrap] or [Wrapf] functions
-// to generate errors and you have enabled caller capture using [CaptureCallerInfo].
-func GetCallerInfo(skip int) *CallerInfo {
-	// runtime.Caller returns the program counter (pc), file path, line number, and success status.
-	pc, file, line, ok := runtime.Caller(2 + skip)
+// If the caller information is available, the function returns a [CallerInfo] object containing the caller information.
+func getCallerInfo(runtimeSkip int, stripPrefixes []string) *CallerInfo {
+	pc, file, line, ok := runtime.Caller(1 + runtimeSkip) // skip the getCallerInfo call itself
 	if !ok {
 		return DefaultCallerInfo()
 	}
 
-	// get the full function name
-	fn := runtime.FuncForPC(pc).Name()
+	frames := runtime.CallersFrames([]uintptr{pc})
+	fr, _ := frames.Next()
 
-	// strip the first matching prefix from the file path
-	for _, prefix := range _callerFilePrefixes {
+	fnName := fr.Function
+
+	for _, prefix := range stripPrefixes {
 		if strings.HasPrefix(file, prefix) {
 			file = file[len(prefix):]
+
 			break
 		}
 	}
@@ -89,6 +68,6 @@ func GetCallerInfo(skip int) *CallerInfo {
 	return &CallerInfo{
 		File: file,
 		Line: line,
-		Func: fn,
+		Func: fnName,
 	}
 }

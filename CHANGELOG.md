@@ -4,40 +4,81 @@
 
 No unreleased changes
 
-## v0.7.0 (Released 2026-04-15)
+## [v0.10.0] - 2026-04-18
 
-* Added unit test to cover code
-* Upgraded library to require Go 1.25.9 or later for security purposes
+### Added
 
-## v0.6.0 (Released 2026-02-13)
+- Full module documentation is now available along with example usage
+- Full unit tests for 100% code coverage have been created
+- Options for capturing caller information are now passed via `context.Context` objects or directly when an `Error` is constructed
 
-* Updated module name to `go.innotegrity.dev/mod/xerrors` for consistency with modules and apps
+### Changed
 
-## v0.4.0 (Released 2025-11-05)
+- The `Error` interface is now a concrete object while the `interface` is now renamed to `XError`
+- The format of this Changelog has been updated to comply with [keep a changelog v1.1.0](https://keepachangelog.com/en/1.1.0)
 
-* Updated required `go` version to `1.23.1`
+### Removed
 
-## v0.3.4 (Released 2025-10-29)
+- Caller capture options are no longer defined globally; instead they are passed as options in context or when the error itself is created
 
-* Fixed MarshalJSON so that it includes the wrapped error as well
+## [v0.7.0] - 2026-04-15
 
-## v0.3.3 (Released 2025-10-07)
+### Added
 
-* Fixed nil pointer bug with wrapped errors
+- Initial unit tests for code coverage
 
-## v0.3.2 (Released 2025-10-06)
+### Security
 
-* Fixed bug when marshalling wrapped error to JSON
+- Upgraded to require Go 1.25.9 or later for security purposes
 
-## v0.3.1 (Released 2025-10-06)
+## [v0.6.0] - 2026-02-13
 
-* Added `CallerInfo` type and `DefaultCallerInfo` and `GetCallerInfo` functions
-* Enhanced `MarshalJSON` to include wrapped errors
+### Changed
 
-## v0.2.0 (Released 2025-10-05)
+- Updated module name to `go.innotegrity.dev/mod/xerrors` for consistency with modules and apps
 
-* Added `Wrap` and `Wrapf` functions
+## [v0.4.0] - 2025-11-05
 
-## v0.1.0 (Released 2025-10-05)
+### Security
 
-* Initial release of the module
+- Upgraded to require Go 1.23.1 or later for security purposes
+
+## [v0.3.4] - 2025-10-29
+
+### Fixed
+
+- Fixed `MarshalJSON` so that it includes the wrapped error properly now as well
+
+## [v0.3.3] - 2025-10-07
+
+### Fixed
+
+- Fixed nil pointer bug with wrapped errors
+
+## [v0.3.2] - 2025-10-06
+
+### Fixed
+
+- Fixed bug when marshalling wrapped error to JSON
+
+## [v0.3.1] - 2025-10-06
+
+### Added
+
+- Added `CallerInfo` type and `DefaultCallerInfo` and `GetCallerInfo` functions
+
+### Changed
+
+- Enhanced `MarshalJSON` to include wrapped errors
+
+## [v0.2.0] - 2025-10-05
+
+### Added
+
+- Added `Wrap` and `Wrapf` functions
+
+## [v0.1.0] - 2025-10-05
+
+### Added
+
+- Initial release of the module
