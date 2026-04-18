@@ -28,5 +28,6 @@ repos:
         entry: sonar analyze secrets --
         language: system
         pass_filenames: true
-        #stages:
-        #  - pre-push
+        stages:
+          - pre-commit
+          - pre-push
