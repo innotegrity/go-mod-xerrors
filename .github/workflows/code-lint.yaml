@@ -26,7 +26,6 @@ jobs:
         uses: golangci/golangci-lint-action@v9
         with:
           version: v2.11
-          args: --config=.golangci.yml
 
   markdownlint:
     name: markdownlint
