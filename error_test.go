@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"os"
 	"reflect"
 	"strings"
 	"testing"
@@ -102,6 +103,130 @@ func TestWrapfAs_NoArgsUsesLiteralMessage(t *testing.T) {
 	}, errTestBase, 202, want)
 	if got.Error() != want {
 		t.Fatalf("got %q, want %q", got.Error(), want)
+	}
+}
+
+func TestConstruct_ErrNil_NewfPath(t *testing.T) {
+	t.Parallel()
+
+	got := xerrors.Construct(context.Background(), nil, 101, "plain")
+	if got.Code() != 101 || got.Error() != "plain" {
+		t.Fatalf("unexpected Construct: code=%d msg=%q", got.Code(), got.Error())
+	}
+
+	if got.Unwrap() != nil {
+		t.Fatalf("Unwrap: got %v, want nil", got.Unwrap())
+	}
+}
+
+func TestConstruct_ErrNil_FormattedMessage(t *testing.T) {
+	t.Parallel()
+
+	e := xerrors.Construct(context.Background(), nil, 102, "k=%d", 9)
+	if e.Code() != 102 || e.Error() != "k=9" {
+		t.Fatalf("unexpected Construct: code=%d msg=%q", e.Code(), e.Error())
+	}
+}
+
+func TestConstruct_ErrNil_NoArgsUsesLiteralFormat(t *testing.T) {
+	t.Parallel()
+
+	const want = "literal plaintext without fmt verbs"
+
+	e := xerrors.Construct(context.Background(), nil, 103, want)
+	if e.Error() != want {
+		t.Fatalf("got %q, want %q", e.Error(), want)
+	}
+}
+
+func TestConstruct_ErrNotNil_WrapfPath(t *testing.T) {
+	t.Parallel()
+
+	got := xerrors.Construct(context.Background(), errTestBase, 201, "outer")
+	if got.Code() != 201 || got.Error() != "outer" {
+		t.Fatalf("unexpected Construct: code=%d msg=%q", got.Code(), got.Error())
+	}
+
+	if !got.Is(errTestBase) {
+		t.Fatal("expected Is(errTestBase)")
+	}
+
+	if !errors.Is(got.Unwrap(), errTestBase) {
+		t.Fatalf("Unwrap: got %v", got.Unwrap())
+	}
+}
+
+func TestConstruct_ErrNotNil_FormattedOuterMessage(t *testing.T) {
+	t.Parallel()
+
+	e := xerrors.Construct(context.Background(), errTestBase, 202, "tag=%s", "v")
+	if e.Error() != "tag=v" {
+		t.Fatalf("unexpected message: %q", e.Error())
+	}
+}
+
+func TestConstruct_ErrNotNil_NoArgsUsesLiteralMessage(t *testing.T) {
+	t.Parallel()
+
+	const want = "literal plaintext without fmt verbs"
+
+	e := xerrors.Construct(context.Background(), errTestBase, 203, want)
+	if e.Error() != want {
+		t.Fatalf("got %q, want %q", e.Error(), want)
+	}
+}
+
+func TestConstruct_AppliesOptionsFromContext_NilErr(t *testing.T) {
+	t.Parallel()
+
+	workDir, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("getwd: %v", err)
+	}
+
+	prefix := workDir + string(os.PathSeparator)
+
+	ctx := xerrors.ContextWithErrorOptions(context.Background(),
+		xerrors.WithCaptureCaller(),
+		xerrors.WithStripFilePrefixes(prefix),
+	)
+
+	e := xerrors.Construct(ctx, nil, 301, "with-ctx")
+
+	caller := e.Caller()
+	if caller.File == xerrors.UnknownCallerFile || caller.Line <= 0 || caller.Func == xerrors.UnknownCallerFunc {
+		t.Fatalf("expected captured caller, got %+v", caller)
+	}
+
+	if strings.HasPrefix(caller.File, workDir) {
+		t.Fatalf("expected stripped file path, got %q", caller.File)
+	}
+}
+
+func TestConstruct_AppliesOptionsFromContext_WrappedErr(t *testing.T) {
+	t.Parallel()
+
+	workDir, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("getwd: %v", err)
+	}
+
+	prefix := workDir + string(os.PathSeparator)
+
+	ctx := xerrors.ContextWithErrorOptions(context.Background(),
+		xerrors.WithCaptureCaller(),
+		xerrors.WithStripFilePrefixes(prefix),
+	)
+
+	e := xerrors.Construct(ctx, errTestBase, 302, "wrapped-via-construct")
+
+	caller := e.Caller()
+	if caller.File == xerrors.UnknownCallerFile || caller.Line <= 0 || caller.Func == xerrors.UnknownCallerFunc {
+		t.Fatalf("expected captured caller, got %+v", caller)
+	}
+
+	if strings.HasPrefix(caller.File, workDir) {
+		t.Fatalf("expected stripped file path, got %q", caller.File)
 	}
 }
 
