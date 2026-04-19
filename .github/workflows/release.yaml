@@ -5,23 +5,12 @@ on:
     tags:
       - "v*.*.*"
 
-env:
-  # action specific variables
-  CHECKOUT_ACTION_REF: 'de0fac2e4500dabe0009e67214ff5f5447ce83dd' # v6.0.2
-  EXTRACT_RELEASE_NOTES_ACTION_REF: '273da39a24fb7db106a35526c8162815faffd31d' # v3.1.0
-  SOFTPROPS_ACTION_GH_RELEASE_ACTION_REF: 'b4309332981a82ec1c5618f44dd2e27cc8bfbfda' # v3.0.0
-
 jobs:
-  build:
+  create-release:
+    name: Create GitHub Release
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@${{ env.CHECKOUT_ACTION_REF }}
-      - name: Extract Release Notes
-        uses: ffurrer2/extract-release-notes@${{ env.INNOTEGRITY_EXTRACT_RELEASE_NOTES_ACTION_REF }}
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@${{ env.SOFTPROPS_ACTION_GH_RELEASE_ACTION_REF }}
-        with:
-          body: ${{ steps.extract_release_notes.outputs.release_notes }}
-          name: Release ${{ github.ref_name }}
-          generate_release_notes: false
+      - uses: innotegrity/github-actions/check-out-code@main
+      - uses: innotegrity/github-actions/create-release-from-changelog@main
