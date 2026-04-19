@@ -87,6 +87,35 @@
 // The library is responsible for threading that context into every error it returns; if it omits
 // [XError.WithOptionsFromContext], application-supplied options have no effect on those errors.
 //
+// # NewXError for third-party and application wrapper types
+//
+// [NewXError] returns a concrete [*XError] in one step: it applies [XError.WithOptionsFromContext] using the given
+// context, chooses [Newf]-style construction when the wrapped error is nil, and [Wrapf]-style construction when it is
+// not, using the same message and variadic argument rules as those functions. That makes it a convenient building block
+// when your public API returns a struct that embeds [*XError]: you avoid repeating
+// `Newf(...).WithOptionsFromContext(ctx).(*xerrors.XError)` or the wrap equivalent at every return site.
+//
+// Define your type with an embedded [*XError] (see the section below), then wire the pointer from [NewXError]:
+//
+//	type ClientError struct{ *xerrors.XError }
+//
+//	func errUpstream(ctx context.Context, cause error) *ClientError {
+//		return &ClientError{
+//			XError: xerrors.NewXError(ctx, cause, CodeUpstream, "downstream request failed"),
+//		}
+//	}
+//
+//	func errValidation(ctx context.Context, field string) *ClientError {
+//		return &ClientError{
+//			XError: xerrors.NewXError(ctx, nil, CodeValidation, "field %s is required", field),
+//		}
+//	}
+//
+// Pass the same [context.Context] you received on the API boundary so caller capture and strip-prefix options from
+// [ContextWithErrorOptions] apply automatically. If you need a custom concrete type other than [*XError], build with
+// [NewXError] and pass the result to [XErrorAs], or continue using [NewAs] / [NewfAs] / [WrapAs] / [WrapfAs], which
+// accept a constructor callback instead of returning [*XError] directly.
+//
 // # Custom errors, codes, and the Error interface
 //
 // Treat integer codes as part of your public contract: define named constants (or enums) in your own package,

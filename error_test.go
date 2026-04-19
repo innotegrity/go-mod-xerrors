@@ -106,12 +106,12 @@ func TestWrapfAs_NoArgsUsesLiteralMessage(t *testing.T) {
 	}
 }
 
-func TestConstruct_ErrNil_NewfPath(t *testing.T) {
+func TestNewXError_ErrNil_NewfPath(t *testing.T) {
 	t.Parallel()
 
-	got := xerrors.Construct(context.Background(), nil, 101, "plain")
+	got := xerrors.NewXError(context.Background(), nil, 101, "plain")
 	if got.Code() != 101 || got.Error() != "plain" {
-		t.Fatalf("unexpected Construct: code=%d msg=%q", got.Code(), got.Error())
+		t.Fatalf("unexpected NewXError: code=%d msg=%q", got.Code(), got.Error())
 	}
 
 	if got.Unwrap() != nil {
@@ -119,32 +119,32 @@ func TestConstruct_ErrNil_NewfPath(t *testing.T) {
 	}
 }
 
-func TestConstruct_ErrNil_FormattedMessage(t *testing.T) {
+func TestNewXError_ErrNil_FormattedMessage(t *testing.T) {
 	t.Parallel()
 
-	e := xerrors.Construct(context.Background(), nil, 102, "k=%d", 9)
-	if e.Code() != 102 || e.Error() != "k=9" {
-		t.Fatalf("unexpected Construct: code=%d msg=%q", e.Code(), e.Error())
+	got := xerrors.NewXError(context.Background(), nil, 102, "k=%d", 9)
+	if got.Code() != 102 || got.Error() != "k=9" {
+		t.Fatalf("unexpected NewXError: code=%d msg=%q", got.Code(), got.Error())
 	}
 }
 
-func TestConstruct_ErrNil_NoArgsUsesLiteralFormat(t *testing.T) {
+func TestNewXError_ErrNil_NoArgsUsesLiteralFormat(t *testing.T) {
 	t.Parallel()
 
 	const want = "literal plaintext without fmt verbs"
 
-	e := xerrors.Construct(context.Background(), nil, 103, want)
-	if e.Error() != want {
-		t.Fatalf("got %q, want %q", e.Error(), want)
+	got := xerrors.NewXError(context.Background(), nil, 103, want)
+	if got.Error() != want {
+		t.Fatalf("got %q, want %q", got.Error(), want)
 	}
 }
 
-func TestConstruct_ErrNotNil_WrapfPath(t *testing.T) {
+func TestNewXError_ErrNotNil_WrapfPath(t *testing.T) {
 	t.Parallel()
 
-	got := xerrors.Construct(context.Background(), errTestBase, 201, "outer")
+	got := xerrors.NewXError(context.Background(), errTestBase, 201, "outer")
 	if got.Code() != 201 || got.Error() != "outer" {
-		t.Fatalf("unexpected Construct: code=%d msg=%q", got.Code(), got.Error())
+		t.Fatalf("unexpected NewXError: code=%d msg=%q", got.Code(), got.Error())
 	}
 
 	if !got.Is(errTestBase) {
@@ -156,27 +156,27 @@ func TestConstruct_ErrNotNil_WrapfPath(t *testing.T) {
 	}
 }
 
-func TestConstruct_ErrNotNil_FormattedOuterMessage(t *testing.T) {
+func TestNewXError_ErrNotNil_FormattedOuterMessage(t *testing.T) {
 	t.Parallel()
 
-	e := xerrors.Construct(context.Background(), errTestBase, 202, "tag=%s", "v")
-	if e.Error() != "tag=v" {
-		t.Fatalf("unexpected message: %q", e.Error())
+	got := xerrors.NewXError(context.Background(), errTestBase, 202, "tag=%s", "v")
+	if got.Error() != "tag=v" {
+		t.Fatalf("unexpected message: %q", got.Error())
 	}
 }
 
-func TestConstruct_ErrNotNil_NoArgsUsesLiteralMessage(t *testing.T) {
+func TestNewXError_ErrNotNil_NoArgsUsesLiteralMessage(t *testing.T) {
 	t.Parallel()
 
 	const want = "literal plaintext without fmt verbs"
 
-	e := xerrors.Construct(context.Background(), errTestBase, 203, want)
-	if e.Error() != want {
-		t.Fatalf("got %q, want %q", e.Error(), want)
+	got := xerrors.NewXError(context.Background(), errTestBase, 203, want)
+	if got.Error() != want {
+		t.Fatalf("got %q, want %q", got.Error(), want)
 	}
 }
 
-func TestConstruct_AppliesOptionsFromContext_NilErr(t *testing.T) {
+func TestNewXError_AppliesOptionsFromContext_NilErr(t *testing.T) {
 	t.Parallel()
 
 	workDir, err := os.Getwd()
@@ -191,9 +191,9 @@ func TestConstruct_AppliesOptionsFromContext_NilErr(t *testing.T) {
 		xerrors.WithStripFilePrefixes(prefix),
 	)
 
-	e := xerrors.Construct(ctx, nil, 301, "with-ctx")
+	got := xerrors.NewXError(ctx, nil, 301, "with-ctx")
 
-	caller := e.Caller()
+	caller := got.Caller()
 	if caller.File == xerrors.UnknownCallerFile || caller.Line <= 0 || caller.Func == xerrors.UnknownCallerFunc {
 		t.Fatalf("expected captured caller, got %+v", caller)
 	}
@@ -203,7 +203,7 @@ func TestConstruct_AppliesOptionsFromContext_NilErr(t *testing.T) {
 	}
 }
 
-func TestConstruct_AppliesOptionsFromContext_WrappedErr(t *testing.T) {
+func TestNewXError_AppliesOptionsFromContext_WrappedErr(t *testing.T) {
 	t.Parallel()
 
 	workDir, err := os.Getwd()
@@ -218,9 +218,9 @@ func TestConstruct_AppliesOptionsFromContext_WrappedErr(t *testing.T) {
 		xerrors.WithStripFilePrefixes(prefix),
 	)
 
-	e := xerrors.Construct(ctx, errTestBase, 302, "wrapped-via-construct")
+	got := xerrors.NewXError(ctx, errTestBase, 302, "wrapped-via-new-xerror")
 
-	caller := e.Caller()
+	caller := got.Caller()
 	if caller.File == xerrors.UnknownCallerFile || caller.Line <= 0 || caller.Func == xerrors.UnknownCallerFunc {
 		t.Fatalf("expected captured caller, got %+v", caller)
 	}

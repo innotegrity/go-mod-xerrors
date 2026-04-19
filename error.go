@@ -101,21 +101,6 @@ func (e *jsonStdError) Error() string {
 	return e.Message
 }
 
-// Construct is a convenience function that creates a new [Error] object using options from the given context and
-// using the given code, error, message, and arguments.
-//
-// If the error is nil, a new [Error] object is created with the given message and arguments.
-//
-// If the error is not nil, the [Error] object is created with the error wrapped and the given
-// message and arguments.
-func Construct(ctx context.Context, err error, code int, message string, args ...any) Error {
-	if err == nil {
-		return Newf(code, message, args...).WithOptionsFromContext(ctx)
-	}
-
-	return Wrapf(err, code, message, args...).WithOptionsFromContext(ctx)
-}
-
 // New creates a new [Error] with the given code and message.
 func New(code int, message string) Error {
 	return &XError{
@@ -137,6 +122,25 @@ func NewAs[T Error]( //nolint:ireturn // T is inferred; constrained to [Error].
 	}
 
 	return XErrorAs(xerr, ctor)
+}
+
+// NewXError creates a new [XError] object using options from the given context and using the given code, error,
+// message, and arguments.
+//
+// If the error is nil, a new [XError] object is created with the given message and arguments.
+//
+// If the error is not nil, the [XError] object is created with the error wrapped and the given
+// message and arguments.
+func NewXError(ctx context.Context, err error, code int, message string, args ...any) *XError {
+	if err == nil {
+		xerr, _ := Newf(code, message, args...).WithOptionsFromContext(ctx).(*XError)
+
+		return xerr
+	}
+
+	xerr, _ := Wrapf(err, code, message, args...).WithOptionsFromContext(ctx).(*XError)
+
+	return xerr
 }
 
 // Newf creates a new [Error] with the given code and formatted message.

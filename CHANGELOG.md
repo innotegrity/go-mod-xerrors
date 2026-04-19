@@ -4,7 +4,7 @@
 
 No unreleased changes
 
-## [v0.12.0] - 2026-04-19
+## [v0.13.0] - 2026-04-19
 
 ### Added
 
@@ -13,7 +13,7 @@ No unreleased changes
 - Options for capturing caller information are now passed via `context.Context` objects or directly when an `Error` is constructed
 - `NewAs`, `NewfAs`, `WrapAs`, `WrapfAs` are all new functions designed to make it simpler to create concrete types in 3rd party libraries and applications
 - `XError` is now a new, concrete type available from the module
-- `Construct` provides a convenient way to create custom 3rd party error types
+- `NewXError` provides a convenient way to create a new `XError` to use with 3rd party error types
 
 ### Changed
 
