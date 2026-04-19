@@ -14,19 +14,19 @@
   </p>
   <p>
     <b><em>Supported on</em></b><br />
-    <a href="#"><img src="https://img.shields.io/badge/Linux-yellow?style=for-the-badge&logo=linux&logoColor=black" alt="Linux" /></a>
-    <a href="#"><img src="https://img.shields.io/badge/mac%20os-000000?style=for-the-badge&logo=apple&logoColor=white" alt="MacOS" /></a>
-    <a href="#"><img src="https://img.shields.io/badge/windows-0078D7?style=for-the-badge&logo=windows&logoColor=white" alt="Windows" /></a>
+    <img src="https://img.shields.io/badge/Linux-yellow?style=for-the-badge&logo=linux&logoColor=black" alt="Linux" />
+    <img src="https://img.shields.io/badge/mac%20os-000000?style=for-the-badge&logo=apple&logoColor=white" alt="MacOS" />
+    <img src="https://img.shields.io/badge/windows-0078D7?style=for-the-badge&logo=windows&logoColor=white" alt="Windows" />
   </p>
   <p>
-    <a href="#"><img src="https://img.shields.io/badge/stability-alpha-red?style=for-the-badge" alt="alpha Stability" /></a>
+    <img src="https://img.shields.io/badge/stability-alpha-red?style=for-the-badge" alt="alpha Stability" />
     <a href="https://en.wikipedia.org/wiki/MIT_License" target="_blank"><img src="https://img.shields.io/badge/license-MIT-blue?style=for-the-badge" alt="MIT License" /></a>
-    <a href="#"><img src="https://img.shields.io/badge/support-community-darkgreen?style=for-the-badge" alt="Community Supported" /></a>
+    <img src="https://img.shields.io/badge/support-community-darkgreen?style=for-the-badge" alt="Community Supported" />
     <br />
     <a href="https://pkg.go.dev/go.innotegrity.dev/mod/xerrors" target="_blank"><img src="https://img.shields.io/badge/go-reference-2a7d98?style=for-the-badge" alt="Go Reference" /></a>
     <a href="https://goreportcard.com/report/go.innotegrity.dev/mod/xerrors" target="_blank"><img src="https://goreportcard.com/badge/go.innotegrity.dev/mod/xerrors?style=for-the-badge" alt="Go Report Card" /></a>
-    <a href="https://app.codacy.com/gl/innotegrity/xerrors/dashboard?utm_source=gl&utm_medium=referral&utm_content=&utm_campaign=Badge_grade" target="_blank"><img src="https://img.shields.io/codacy/grade/62dd32b225c044c1a8f7f75e50ecb427?style=for-the-badge" alt="Code Quality" /></a>
-    <a href="https://app.codacy.com/gl/innotegrity/xerrors/dashboard?utm_source=gl&utm_medium=referral&utm_content=&utm_campaign=Badge_coverage" target="_blank"><img src="https://img.shields.io/codacy/coverage/62dd32b225c044c1a8f7f75e50ecb427?style=for-the-badge" alt="Code Coverage" /></a>
+    <a href="https://sonarcloud.io/project/overview?id=innotegrity_go-mod-xerrors" target="_blank"><img src="https://img.shields.io/sonar/coverage/innotegrity_go-mod-xerrors?server=https://sonarcloud.io&style=for-the-badge&label=Code%20Coverage" alt="Code Coverage" /></a>
+    <a href="https://sonarcloud.io/project/overview?id=innotegrity_go-mod-xerrors" target="_blank"><img src="https://img.shields.io/sonar/quality_gate/innotegrity_go-mod-xerrors?server=https://sonarcloud.io&style=for-the-badge&label=Code%20Quality" alt="Code Quality" /></a>
   </p>
 </div>
 
