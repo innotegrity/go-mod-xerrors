@@ -116,34 +116,6 @@
 // [NewXError] and pass the result to [XErrorAs], or continue using [NewAs] / [NewfAs] / [WrapAs] / [WrapfAs], which
 // accept a constructor callback instead of returning [*XError] directly.
 //
-// # Custom errors, codes, and the Error interface
-//
-// Treat integer codes as part of your public contract: define named constants (or enums) in your own package,
-// reserve ranges or namespaces for services or domains, and use those constants with [New], [Newf], [Wrap], and
-// [Wrapf]. Fixed user-facing strings can live in the same place as constants, or you can build messages with [Newf] /
-// [Wrapf] while still using a stable code per failure kind:
-//
-//	const (
-//		CodeNotFound   = 404001
-//		CodeValidation = 400001
-//	)
-//
-//	func errUserMissing(id string) xerrors.Error {
-//		return xerrors.Newf(CodeValidation, "user %q is required", id)
-//	}
-//
-// The concrete type [*XError] implements [Error]. To add your own methods or types while keeping JSON and caller
-// behavior, embed a pointer to [*XError] and construct it only through this package (so codes and messages stay
-// consistent). You can embed [*XError] anonymously: the promoted field name is XError, which does not hide the
-// promoted [XError.Error] method (embedding a struct whose type name is Error would use Error as the field name and
-// block the error interface). Use a composite literal with the XError field key when wiring the embedded pointer:
-//
-//	type NotFound struct{ *xerrors.XError }
-//
-//	func NewNotFound() xerrors.Error {
-//		return &NotFound{XError: xerrors.New(CodeNotFound, "not found").(*xerrors.XError)}
-//	}
-//
 // # Generic constructors (NewAs, NewfAs, WrapAs, WrapfAs, XErrorAs)
 //
 // [NewAs], [NewfAs], [WrapAs], and [WrapfAs] take a constructor function as their first argument. The function
