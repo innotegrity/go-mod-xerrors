@@ -1,8 +1,8 @@
 <div align="center">
   <img src="./assets/logo.svg" width=150 alt="error logo" /><br />
-  <h1 align="center">Extended Error Package for Go</h1>
+  <h1 align="center">go-mod-xerrors</h1>
   <p align="center">
-    A module for extending Golang error capabilities
+    A module for extending the standard Golang error interface
   </p>
 </div>
 <hr />
@@ -41,9 +41,11 @@
 
 ## 👁️ Overview
 
-`go.innotegrity.dev/mod/xerrors` is an extended version of the built-in Golang `error` interface and includes an implementation of the interface.  This extended version includes an integer code attached to the error as well as any arbitrary attributes you wish to attach to the error along with the ability to capture caller information when the error is created.
+This module provides a richer version of the built-in `error` interface for handling Go errors.
 
-Please review the [project documentation](https://pkg.go.dev/go.innotegrity.dev/mod/xerrors) for additional details.
+Each error carries a **numeric code**, a **message**, optional **key/value attributes**, and optional **caller** metadata (ie: file, line and function). Errors can **wrap** underlying causes (eg: `errors.Is` / `Unwrap`), and are **JSON-serializable** for logging and APIs. Options such as caller capture and path stripping can be applied via **builder-style `With*` methods** or via **context** so call sites remain simple.
+
+Please review the [module documentation](https://pkg.go.dev/go.innotegrity.dev/mod/xerrors) for full details on usage and the functions and types provided by this module.
 
 ## ✅ Requirements
 
