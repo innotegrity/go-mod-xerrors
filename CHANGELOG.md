@@ -4,17 +4,18 @@
 
 No unreleased changes
 
-## [v0.10.0] - 2026-04-18
+## [v0.11.0] - 2026-04-19
 
 ### Added
 
 - Full module documentation is now available along with example usage
 - Full unit tests for 100% code coverage have been created
 - Options for capturing caller information are now passed via `context.Context` objects or directly when an `Error` is constructed
+- `NewAs`, `NewfAs`, `WrapAs`, `WrapfAs` are all new functions designed to make it simpler to create concrete types in 3rd party libraries and applications
+- `XError` is now a new, concrete type available from the module
 
 ### Changed
 
-- The `Error` interface is now a concrete object while the `interface` is now renamed to `XError`
 - The format of this Changelog has been updated to comply with [keep a changelog v1.1.0](https://keepachangelog.com/en/1.1.0)
 
 ### Removed

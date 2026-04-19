@@ -3,13 +3,14 @@
 //
 // # Basic construction
 //
-// Use [New] for a plain message and [Newf] when the message is formatted:
+// Use [New] for a plain message and [Newf] when the message is formatted. Both return the [Error] interface; the
+// concrete type is [*XError]:
 //
 //	err := xerrors.New(404, "not found")
 //	err = xerrors.Newf(500, "user %s failed", userID)
 //
 // Use [Wrap] and [Wrapf] to wrap an existing error while attaching a code and outer message. The wrapped error is
-// available via [Error.Unwrap] and participates in [errors.Is] / [errors.As] chains:
+// available via [XError.Unwrap] and participates in [errors.Is] / [errors.As] chains:
 //
 //	if err != nil {
 //		return xerrors.Wrap(err, 502, "downstream call failed")
@@ -18,14 +19,14 @@
 //
 // # Caller information
 //
-// By default, [Error.Caller] returns placeholder values until caller capture runs. There are two ways to record the
-// call site: call [Error.WithCaller] on the error, or attach options to a [context.Context] and call
-// [Error.WithOptionsFromContext].
+// By default, [XError.Caller] returns placeholder values until caller capture runs. There are two ways to record the
+// call site: call [XError.WithCaller] on the error, or attach options to a [context.Context] and call
+// [XError.WithOptionsFromContext].
 //
-// Call [Error.WithStripFilePrefixes] (and optionally [Error.WithSkipBias]) on the error before [Error.WithCaller] so
-// recorded paths omit noisy prefixes (for example the module root or workspace directory) and the stack skip matches
-// your wrappers. Then call [Error.WithCaller] once; further calls do not replace the stored caller. After capture,
-// [Error.Caller] returns file, line, and function name for the [Error.WithCaller] invocation:
+// Call [XError.WithStripFilePrefixes] (and optionally [XError.WithSkipBias]) on the error before [XError.WithCaller]
+// so recorded paths omit noisy prefixes (for example the module root or workspace directory) and the stack skip
+// matches your wrappers. Then call [XError.WithCaller] once; further calls do not replace the stored caller. After
+// capture, [XError.Caller] returns file, line, and function name for the [XError.WithCaller] invocation:
 //
 //	wd, _ := os.Getwd()
 //	err := xerrors.New(1, "oops").
@@ -37,7 +38,7 @@
 // # Callers via context
 //
 // Build a context with [ContextWithErrorOptions], passing any combination of [WithCaptureCaller], [WithSkipBias],
-// and [WithStripFilePrefixes]. When an error is configured with [Error.WithOptionsFromContext], those options are
+// and [WithStripFilePrefixes]. When an error is configured with [XError.WithOptionsFromContext], those options are
 // applied to the embedded [ErrorOptions], and if capture is enabled the caller is stored immediately (only the first
 // successful capture is kept).
 //
@@ -50,8 +51,8 @@
 //	// ... pass ctx down ...
 //	err := xerrors.New(code, "failed").WithOptionsFromContext(ctx)
 //
-// Apply other [Error] configuration (such as [Error.WithAttr]) before [Error.WithOptionsFromContext] or
-// [Error.WithCaller], and before reading caller details with [Error.Caller], so attributes and options are settled
+// Apply other [XError] configuration (such as [XError.WithAttr]) before [XError.WithOptionsFromContext] or
+// [XError.WithCaller], and before reading caller details with [XError.Caller], so attributes and options are settled
 // first.
 //
 // A nil context is treated like [context.Background] when attaching options; [ErrorOptionsFromContext] returns nil
@@ -59,12 +60,13 @@
 //
 // # Third-party libraries and context
 //
-// If your library returns [XError] (or [*Error]) from its API, accept a [context.Context] on those entry points and
-// apply it when you construct the error so applications can inject options without importing your internals. After you
-// build the error with [New], [Newf], [Wrap], or [Wrapf], call [Error.WithOptionsFromContext] with the same context you
-// received (and configure attributes or other [Error] methods before that call, as described above):
+// If your library returns [Error] (typically a [*XError] or a wrapper that embeds it) from its API, accept a
+// [context.Context] on those entry points and apply it when you construct the error so applications can inject options
+// without importing your internals. After you build the error with [New], [Newf], [Wrap], or [Wrapf], call
+// [XError.WithOptionsFromContext] with the same context you received (and configure attributes or other [XError]
+// methods before that call, as described above):
 //
-//	func (c *Client) DoSomething(ctx context.Context, id string) xerrors.XError {
+//	func (c *Client) DoSomething(ctx context.Context, id string) xerrors.Error {
 //		if id == "" {
 //			return xerrors.New(400, "empty id").WithOptionsFromContext(ctx)
 //		}
@@ -73,7 +75,7 @@
 //
 // Callers in an application combine their request context with [ContextWithErrorOptions] once, then pass the
 // resulting context into library functions. Options such as [WithCaptureCaller] and [WithStripFilePrefixes] are then
-// applied when the library calls [Error.WithOptionsFromContext]:
+// applied when the library calls [XError.WithOptionsFromContext]:
 //
 //	ctx := r.Context() // or another root context
 //	ctx = xerrors.ContextWithErrorOptions(ctx,
@@ -83,49 +85,92 @@
 //	err := thirdpartyclient.DoSomething(ctx, id)
 //
 // The library is responsible for threading that context into every error it returns; if it omits
-// [Error.WithOptionsFromContext], application-supplied options have no effect on those errors.
+// [XError.WithOptionsFromContext], application-supplied options have no effect on those errors.
 //
-// # Custom errors, codes, and the XError interface
+// # Custom errors, codes, and the Error interface
 //
-// Treat integer codes as part of your public contract: define named constants (or enums) in your own package, reserve
-// ranges or namespaces for services or domains, and use those constants with [New], [Newf], [Wrap], and [Wrapf]. Fixed
-// user-facing strings can live in the same place as constants, or you can build messages with [Newf] / [Wrapf] while
-// still using a stable code per failure kind:
+// Treat integer codes as part of your public contract: define named constants (or enums) in your own package,
+// reserve ranges or namespaces for services or domains, and use those constants with [New], [Newf], [Wrap], and
+// [Wrapf]. Fixed user-facing strings can live in the same place as constants, or you can build messages with [Newf] /
+// [Wrapf] while still using a stable code per failure kind:
 //
 //	const (
 //		CodeNotFound   = 404001
 //		CodeValidation = 400001
 //	)
 //
-//	func errUserMissing(id string) xerrors.XError {
+//	func errUserMissing(id string) xerrors.Error {
 //		return xerrors.Newf(CodeValidation, "user %q is required", id)
 //	}
 //
-// The concrete type [*Error] already implements [XError]. To add your own methods or types while keeping JSON and
-// caller behavior, embed a pointer to [*Error] and construct it only through this package (so codes and messages stay
-// consistent). Methods on [*Error] promote to the outer type; returning [XError] from factories keeps callers decoupled
-// from the concrete struct:
+// The concrete type [*XError] implements [Error]. To add your own methods or types while keeping JSON and caller
+// behavior, embed a pointer to [*XError] and construct it only through this package (so codes and messages stay
+// consistent). You can embed [*XError] anonymously: the promoted field name is XError, which does not hide the
+// promoted [XError.Error] method (embedding a struct whose type name is Error would use Error as the field name and
+// block the error interface). Use a composite literal with the XError field key when wiring the embedded pointer:
 //
-//	type NotFound struct{ *xerrors.Error }
+//	type NotFound struct{ *xerrors.XError }
 //
-//	func NewNotFound(resource string) xerrors.XError {
-//		return &NotFound{Error: xerrors.New(CodeNotFound, "not found").(*xerrors.Error)}
+//	func NewNotFound() xerrors.Error {
+//		return &NotFound{XError: xerrors.New(CodeNotFound, "not found").(*xerrors.XError)}
 //	}
 //
-// Implementing [XError] without embedding is possible but requires every method from the interface (including JSON and
-// the With* helpers); embedding [*Error] is the supported approach.
+// # Generic constructors (NewAs, NewfAs, WrapAs, WrapfAs, XErrorAs)
+//
+// [NewAs], [NewfAs], [WrapAs], and [WrapfAs] take a constructor function as their first argument. The function
+// receives the built [*XError] and returns your own type T constrained by [Error], so you avoid a type assertion at
+// the call site and keep a concrete return type for APIs and tests:
+//
+//	func NewNotFound() *NotFound {
+//		return xerrors.NewAs(func(e *xerrors.XError) *NotFound {
+//			return &NotFound{XError: e}
+//		}, CodeNotFound, "not found")
+//	}
+//
+//	func NewNotFoundf(userID string) *NotFound {
+//		return xerrors.NewfAs(func(e *xerrors.XError) *NotFound {
+//			return &NotFound{XError: e}
+//		}, CodeNotFound, "user %s not found", userID)
+//	}
+//
+//	func WrapNotFound(cause error) *NotFound {
+//		return xerrors.WrapAs(func(e *xerrors.XError) *NotFound {
+//			return &NotFound{XError: e}
+//		}, cause, CodeNotFound, "resource missing")
+//	}
+//
+// [WrapfAs] passes trailing arguments to the same formatting rules as [Wrapf] (empty args means a literal message
+// string):
+//
+//	func WrapRetry(cause error, n int) *NotFound {
+//		return xerrors.WrapfAs(func(e *xerrors.XError) *NotFound {
+//			return &NotFound{XError: e}
+//		}, cause, CodeNotFound, "retry %d exhausted", n)
+//	}
+//
+// If you already hold a [*XError] (for example after options or attributes) and only need to change the concrete
+// type, use [XErrorAs]:
+//
+//	base := xerrors.New(CodeNotFound, "gone").(*xerrors.XError)
+//	out := xerrors.XErrorAs(base, func(e *xerrors.XError) *NotFound { return &NotFound{XError: e} })
+//
+// Third-party modules can use the same pattern: define stable codes in the application, embed [*XError], and return
+// [Error] or a pointer to the wrapper from public APIs.
+//
+// Implementing [Error] without embedding is possible but requires every method from the interface (including JSON and
+// the With* helpers); embedding [*XError] is the supported approach.
 //
 // # JSON and wrapped errors
 //
-// The wrappedError field is a tagged union. Use kind "xerror" with a nested object for another [*Error], or kind
-// "std" with message for opaque errors. JSON without "kind" in wrappedError is not accepted.
+// The wrappedError field is a tagged union. Use kind "xerrors.Error" with a nested object for another [*XError], or
+// kind "std" with message for opaque errors. JSON without "kind" in wrappedError is not accepted.
 //
-//	"wrappedError": {"kind":"xerror","nested":{"code":2,"message":"inner",...}}
+//	"wrappedError": {"kind":"xerrors.Error","nested":{"code":2,"message":"inner",...}}
 //	"wrappedError": {"kind":"std","message":"upstream failed"}
 //
 // # Behavior notes
 //
-// [Error.Attrs] returns a shallow copy of the attribute map; mutating the returned map does not change the [Error].
+// [XError.Attrs] returns a shallow copy of the attribute map; mutating the returned map does not change the [*XError].
 // Values that are pointers or slices are still shared with the stored attribute value.
 //
 // [ContextWithErrorOptions] appends new [ErrorOptionFn] values after any options already stored on the context, so

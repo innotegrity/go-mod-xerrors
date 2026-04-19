@@ -18,15 +18,52 @@ var (
 	errTestStd   = errors.New("std")
 )
 
-func mustErrPtr(t *testing.T, xe xerrors.XError) *xerrors.Error {
+func mustErrPtr(t *testing.T, xe xerrors.Error) *xerrors.XError {
 	t.Helper()
 
-	out, ok := xe.(*xerrors.Error)
+	out, ok := xe.(*xerrors.XError)
 	if !ok {
-		t.Fatalf("expected *xerrors.Error, got %T", xe)
+		t.Fatalf("expected *xerrors.XError, got %T", xe)
 	}
 
 	return out
+}
+
+// notFoundTestError embeds [*xerrors.XError] under the promoted field name XError (see package doc).
+type notFoundTestError struct{ *xerrors.XError }
+
+func TestNewAs_NewfAs_WrapAs_WrapfAs(t *testing.T) {
+	t.Parallel()
+
+	const code = 404
+
+	n1 := xerrors.NewAs(func(e *xerrors.XError) *notFoundTestError {
+		return &notFoundTestError{XError: e}
+	}, code, "plain")
+	if n1.Code() != code || n1.Error() != "plain" {
+		t.Fatalf("unexpected NewAs: code=%d msg=%q", n1.Code(), n1.Error())
+	}
+
+	n2 := xerrors.NewfAs(func(e *xerrors.XError) *notFoundTestError {
+		return &notFoundTestError{XError: e}
+	}, code, "n=%d", 42)
+	if n2.Code() != code || n2.Error() != "n=42" {
+		t.Fatalf("unexpected NewfAs: code=%d msg=%q", n2.Code(), n2.Error())
+	}
+
+	n3 := xerrors.WrapAs(func(e *xerrors.XError) *notFoundTestError {
+		return &notFoundTestError{XError: e}
+	}, errTestBase, code, "wrapped")
+	if !n3.Is(errTestBase) || n3.Error() != "wrapped" {
+		t.Fatalf("unexpected WrapAs: msg=%q is=%v", n3.Error(), n3.Is(errTestBase))
+	}
+
+	n4 := xerrors.WrapfAs(func(e *xerrors.XError) *notFoundTestError {
+		return &notFoundTestError{XError: e}
+	}, errTestBase, code, "fmt %s", "ok")
+	if n4.Error() != "fmt ok" || !n4.Is(errTestBase) {
+		t.Fatalf("unexpected WrapfAs: msg=%q", n4.Error())
+	}
 }
 
 func TestNew_Newf_Code_Error(t *testing.T) {
@@ -88,7 +125,7 @@ func TestUnwrap(t *testing.T) {
 
 	chain := xerrors.Wrap(inner, 11, "mid")
 	if !errors.Is(chain.Unwrap(), inner) {
-		t.Fatalf("Unwrap nested *Error: got %v, want inner", chain.Unwrap())
+		t.Fatalf("Unwrap nested *XError: got %v, want inner", chain.Unwrap())
 	}
 }
 
@@ -183,8 +220,10 @@ func TestMarshalJSON_WrappedXError(t *testing.T) {
 		t.Fatalf("wrappedError missing: %#v", out["wrappedError"])
 	}
 
-	if wrapped["kind"] != "xerror" {
-		t.Fatalf("expected kind xerror, got %#v", wrapped["kind"])
+	const jsonKindNested = "xerrors.Error"
+
+	if wrapped["kind"] != jsonKindNested {
+		t.Fatalf("expected kind %s, got %#v", jsonKindNested, wrapped["kind"])
 	}
 
 	nested, ok := wrapped["nested"].(map[string]any)
@@ -305,8 +344,8 @@ func TestWithCaller_SecondCallDoesNotRecapture(t *testing.T) {
 	}
 }
 
-// xerrorsDeepEqual compares two [*xerrors.Error] values produced by JSON round-trips or equivalent construction.
-func xerrorsDeepEqual(want, got *xerrors.Error) bool {
+// xerrorsDeepEqual compares two [*xerrors.XError] values produced by JSON round-trips or equivalent construction.
+func xerrorsDeepEqual(want, got *xerrors.XError) bool {
 	if want.Code() != got.Code() || want.Error() != got.Error() {
 		return false
 	}
@@ -331,7 +370,7 @@ func unwrapEqual(want, got error) bool {
 		return false
 	}
 
-	var wantX, gotX *xerrors.Error
+	var wantX, gotX *xerrors.XError
 	if errors.As(want, &wantX) && errors.As(got, &gotX) {
 		return xerrorsDeepEqual(wantX, gotX)
 	}
@@ -339,7 +378,7 @@ func unwrapEqual(want, got error) bool {
 	return want.Error() == got.Error()
 }
 
-func roundTripJSON(t *testing.T, orig *xerrors.Error) *xerrors.Error {
+func roundTripJSON(t *testing.T, orig *xerrors.XError) *xerrors.XError {
 	t.Helper()
 
 	raw, err := json.Marshal(orig)
@@ -347,7 +386,7 @@ func roundTripJSON(t *testing.T, orig *xerrors.Error) *xerrors.Error {
 		t.Fatalf("marshal: %v", err)
 	}
 
-	var out xerrors.Error
+	var out xerrors.XError
 
 	err = json.Unmarshal(raw, &out)
 	if err != nil {
@@ -407,7 +446,7 @@ func TestUnmarshalJSON_RoundTripStdWrapped(t *testing.T) {
 func TestUnmarshalJSON_InvalidJSON(t *testing.T) {
 	t.Parallel()
 
-	var dest xerrors.Error
+	var dest xerrors.XError
 
 	err := json.Unmarshal([]byte(`not json`), &dest)
 	if err == nil {
@@ -418,7 +457,7 @@ func TestUnmarshalJSON_InvalidJSON(t *testing.T) {
 func TestUnmarshalJSON_DirectCallInvalidPayload(t *testing.T) {
 	t.Parallel()
 
-	var dest xerrors.Error
+	var dest xerrors.XError
 
 	err := (&dest).UnmarshalJSON([]byte(`not json`))
 	if err == nil {
@@ -433,7 +472,7 @@ func TestUnmarshalJSON_DirectCallInvalidPayload(t *testing.T) {
 func TestUnmarshalJSON_WrappedErrorNotObject(t *testing.T) {
 	t.Parallel()
 
-	var dest xerrors.Error
+	var dest xerrors.XError
 
 	err := json.Unmarshal([]byte(`{"code":1,"message":"x","wrappedError":[]}`), &dest)
 	if err == nil {
@@ -444,7 +483,7 @@ func TestUnmarshalJSON_WrappedErrorNotObject(t *testing.T) {
 func TestUnmarshalJSON_WrappedInnerInvalid(t *testing.T) {
 	t.Parallel()
 
-	var dest xerrors.Error
+	var dest xerrors.XError
 
 	// wrappedError is not a valid [wrappedEnvelope]; missing kind (and invalid nested JSON for this schema).
 	raw := `{"code":1,"message":"outer","wrappedError":{"code":2,"message":true}}`
@@ -458,7 +497,7 @@ func TestUnmarshalJSON_WrappedInnerInvalid(t *testing.T) {
 func TestUnmarshalJSON_WrappedStdInvalid(t *testing.T) {
 	t.Parallel()
 
-	var dest xerrors.Error
+	var dest xerrors.XError
 
 	// Invalid envelope: "message" must be a string for unmarshaling into [wrappedEnvelope].
 	raw := `{"code":1,"message":"outer","wrappedError":{"kind":"std","message":{}}}`
@@ -475,14 +514,14 @@ func TestUnmarshalJSON_MissingWrappedKind(t *testing.T) {
 	// Old wire shape without tagged union is rejected.
 	raw := `{"code":1,"message":"outer","wrappedError":{"code":2,"message":"inner"}}`
 
-	var dest xerrors.Error
+	var dest xerrors.XError
 
 	err := json.Unmarshal([]byte(raw), &dest)
 	if err == nil {
 		t.Fatal("expected error")
 	}
 
-	if !strings.Contains(err.Error(), `wrappedError must include "kind"`) {
+	if !strings.Contains(err.Error(), `wrappedError must include a valid "kind"`) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }
@@ -492,7 +531,7 @@ func TestUnmarshalJSON_UnknownWrappedKind(t *testing.T) {
 
 	raw := `{"code":1,"message":"x","wrappedError":{"kind":"other","message":"m"}}`
 
-	var dest xerrors.Error
+	var dest xerrors.XError
 
 	err := json.Unmarshal([]byte(raw), &dest)
 	if err == nil {
@@ -503,9 +542,9 @@ func TestUnmarshalJSON_UnknownWrappedKind(t *testing.T) {
 func TestUnmarshalJSON_XErrorKindMissingNested(t *testing.T) {
 	t.Parallel()
 
-	raw := `{"code":1,"message":"x","wrappedError":{"kind":"xerror"}}`
+	raw := `{"code":1,"message":"x","wrappedError":{"kind":"xerrors.Error"}}`
 
-	var dest xerrors.Error
+	var dest xerrors.XError
 
 	err := json.Unmarshal([]byte(raw), &dest)
 	if err == nil {
@@ -516,10 +555,10 @@ func TestUnmarshalJSON_XErrorKindMissingNested(t *testing.T) {
 func TestUnmarshalJSON_XErrorNestedInnerInvalid(t *testing.T) {
 	t.Parallel()
 
-	// [wrappedEnvelope.nested] decodes, but inner [*Error.UnmarshalJSON] fails on the nested object.
-	raw := `{"code":1,"message":"outer","wrappedError":{"kind":"xerror","nested":{"code":1,"message":true}}}`
+	// [wrappedEnvelope.nested] decodes, but inner [*XError.UnmarshalJSON] fails on the nested object.
+	raw := `{"code":1,"message":"outer","wrappedError":{"kind":"xerrors.Error","nested":{"code":1,"message":true}}}`
 
-	var dest xerrors.Error
+	var dest xerrors.XError
 
 	err := json.Unmarshal([]byte(raw), &dest)
 	if err == nil {

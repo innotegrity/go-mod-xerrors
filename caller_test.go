@@ -90,7 +90,7 @@ func TestCaller_FromContextWithCapture(t *testing.T) {
 // Keep the marker on the WithCaller line.
 //
 //go:noinline
-func newErrAtWithCallerCallSite(stripPrefix string) xerrors.XError {
+func newErrAtWithCallerCallSite(stripPrefix string) xerrors.Error {
 	errObj := xerrors.New(1, "callsite")
 	errObj = errObj.WithStripFilePrefixes(stripPrefix)
 
@@ -100,7 +100,7 @@ func newErrAtWithCallerCallSite(stripPrefix string) xerrors.XError {
 // newErrAtWithOptionsFromContextCallSite is used only from TestCaller_CaptureMatchesCallSite.
 //
 //go:noinline
-func newErrAtWithOptionsFromContextCallSite(ctx context.Context, stripPrefix string) xerrors.XError {
+func newErrAtWithOptionsFromContextCallSite(ctx context.Context, stripPrefix string) xerrors.Error {
 	errObj := xerrors.New(2, "ctx-site")
 	errObj = errObj.WithStripFilePrefixes(stripPrefix)
 

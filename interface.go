@@ -5,10 +5,8 @@ import (
 	"encoding/json"
 )
 
-// XError is the interface that all error objects must implement.
-//
-//nolint:interfacebloat // interface includes  methods from json and error packages
-type XError interface {
+// Error is the interface that all error objects must implement.
+type Error interface {
 	error
 	json.Marshaler
 	json.Unmarshaler
@@ -22,9 +20,6 @@ type XError interface {
 	// Code returns the code of the error.
 	Code() int
 
-	// Error returns the actual error message.
-	Error() string
-
 	// Is returns true if the error is equal to the target error.
 	Is(target error) bool
 
@@ -35,20 +30,20 @@ type XError interface {
 	Unwrap() error
 
 	// WithAttr adds an attribute to the error and returns itself.
-	WithAttr(key string, value any) XError
+	WithAttr(key string, value any) Error
 
 	// WithAttrs adds attributes to the error and returns itself.
-	WithAttrs(attrs map[string]any) XError
+	WithAttrs(attrs map[string]any) Error
 
 	// WithCaller captures caller information for the error and returns itself.
-	WithCaller() XError
+	WithCaller() Error
 
 	// WithOptionsFromContext applies options from the context to the error and returns itself.
-	WithOptionsFromContext(ctx context.Context) XError
+	WithOptionsFromContext(ctx context.Context) Error
 
 	// WithSkipBias sets the stack skip bias for caller capture and returns itself.
-	WithSkipBias(bias int) XError
+	WithSkipBias(bias int) Error
 
 	// WithStripFilePrefixes sets file path prefixes to strip from recorded caller paths and returns itself.
-	WithStripFilePrefixes(prefixes ...string) XError
+	WithStripFilePrefixes(prefixes ...string) Error
 }

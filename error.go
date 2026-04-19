@@ -9,35 +9,36 @@ import (
 )
 
 const (
-	// errFmtMarshalJSON is the format string for errors returned from [Error.MarshalJSON].
+	// errFmtMarshalJSON is the format string for errors returned from [XError.MarshalJSON].
 	errFmtMarshalJSON = "marshal extended error to JSON: %w"
 
-	// errFmtUnmarshalJSON is the format string for errors returned from [Error.UnmarshalJSON].
+	// errFmtUnmarshalJSON is the format string for errors returned from [XError.UnmarshalJSON].
 	errFmtUnmarshalJSON = "unmarshal extended error from JSON: %w"
 
-	// wrappedKindXError is the wrappedEnvelope.kind value for a nested [*Error] (recursive JSON shape).
-	wrappedKindXError = "xerror"
+	// wrappedKindError is the wrappedEnvelope.kind value for a nested [Error] (recursive JSON shape).
+	wrappedKindError = "xerrors.Error"
 
 	// wrappedKindStd is the wrappedEnvelope.kind value for a non-[Error] wrapped error ([jsonStdError]).
 	wrappedKindStd = "std"
 )
 
 var (
-	// errWrappedXErrorNeedsNested is returned when kind is [wrappedKindXError] but nested JSON is missing.
-	errWrappedXErrorNeedsNested = errors.New(`xerrors: wrappedError kind "xerror" requires non-empty "nested"`)
+	// errWrappedXErrorNeedsNested is returned when kind is [wrappedKindError] but nested JSON is missing.
+	errWrappedXErrorNeedsNested = fmt.Errorf(`wrappedError kind %q requires non-empty "nested"`, wrappedKindError)
 
 	// errWrappedMissingKind is returned when [wrappedEnvelope.kind] is missing from wrappedError JSON.
-	errWrappedMissingKind = errors.New(`xerrors: wrappedError must include "kind" ("xerror" or "std")`)
+	errWrappedMissingKind = fmt.Errorf(`wrappedError must include a valid "kind" (%q or %q)`, wrappedKindError,
+		wrappedKindStd)
 )
 
-// jsonMarshalWrappedEnvelope serializes [wrappedEnvelope] for [Error.MarshalJSON]. Tests may replace it to cover the
-// marshal error path (nested [Error.MarshalJSON] success always yields valid [wrappedEnvelope.Nested] JSON).
+// jsonMarshalWrappedEnvelope serializes [wrappedEnvelope] for [XError.MarshalJSON]. Tests may replace it to cover the
+// marshal error path (nested [XError.MarshalJSON] success always yields valid [wrappedEnvelope.Nested] JSON).
 //
 //nolint:gochecknoglobals // intentional indirection for tests; default is [json.Marshal].
 var jsonMarshalWrappedEnvelope = json.Marshal
 
-// Error is an extended error that holds an error code, message, caller information, attributes, and a wrapped error.
-type Error struct {
+// XError is an extended error that holds an error code, message, caller information, attributes, and a wrapped error.
+type XError struct {
 	ErrorOptions
 
 	// unexported variables
@@ -48,7 +49,7 @@ type Error struct {
 	wrappedErr error          // the wrapped error, if any
 }
 
-// jsonError is the JSON shape for [Error] used by [Error.MarshalJSON] and [Error.UnmarshalJSON].
+// jsonError is the JSON shape for [XError] used by [XError.MarshalJSON] and [XError.UnmarshalJSON].
 type jsonError struct {
 	// Attrs is a map of attributes associated with the error.
 	Attrs map[string]any `json:"attrs,omitempty"`
@@ -68,12 +69,14 @@ type jsonError struct {
 
 // wrappedEnvelope is the tagged union written inside [jsonError.wrappedError].
 type wrappedEnvelope struct {
+	// Kind is the kind of the wrapped error.
 	Kind string `json:"kind"`
 
-	// Nested holds the recursive [*Error] JSON object when Kind is [wrappedKindXError].
+	// Nested holds the recursive [*XError] JSON object when Kind is [wrappedKindError].
+	// Nested is required when Kind is [wrappedKindError] and must be non-empty.
 	Nested json.RawMessage `json:"nested,omitempty"`
 
-	// Message holds the text when Kind is [wrappedKindStd].
+	// Message holds the text when Kind is [wrappedKindStd]. Message is required when Kind is [wrappedKindStd].
 	Message string `json:"message,omitempty"`
 }
 
@@ -88,61 +91,136 @@ func (e *jsonStdError) Error() string {
 	return e.Message
 }
 
-// New creates a new [XError] with the given code and message.
-func New(code int, message string) XError {
-	return &Error{
+// New creates a new [Error] with the given code and message.
+func New(code int, message string) Error {
+	return &XError{
 		code:    code,
 		message: message,
 	}
 }
 
-// Newf creates a new [XError] with the given code and formatted message.
+// NewAs builds an error with the given code and message using the given constructor function to create a custom
+// concrete type that embeds [XError] and implements the [Error] interface.
+func NewAs[T Error]( //nolint:ireturn // T is inferred; constrained to [Error].
+	ctor func(*XError) T,
+	code int,
+	message string,
+) T {
+	xerr, ok := New(code, message).(*XError)
+	if !ok {
+		panic("xerrors: New must return *XError")
+	}
+
+	return XErrorAs(xerr, ctor)
+}
+
+// Newf creates a new [Error] with the given code and formatted message.
 //
 // If args is empty, format is used as the literal message (no [fmt.Sprintf] processing), so strings that contain "%"
 // are safe. If args is non-empty, format is passed to [fmt.Sprintf] with args.
-func Newf(code int, format string, args ...any) XError {
+func Newf(code int, format string, args ...any) Error {
 	msg := format
 	if len(args) > 0 {
 		msg = fmt.Sprintf(format, args...)
 	}
 
-	return &Error{
+	return &XError{
 		code:    code,
 		message: msg,
 	}
 }
 
+// NewfAs builds an error with the given code and formatted message using the given constructor function to create a
+// custom concrete type that embeds [XError] and implements the [Error] interface.
+//
+// If args is empty, format is used as the literal message (no [fmt.Sprintf] processing), so strings that contain "%"
+// are safe. If args is non-empty, format is passed to [fmt.Sprintf] with args.
+func NewfAs[T Error]( //nolint:ireturn // T is inferred; constrained to [Error].
+	ctor func(*XError) T,
+	code int,
+	format string,
+	args ...any,
+) T {
+	xerr, ok := Newf(code, format, args...).(*XError)
+	if !ok {
+		panic("xerrors: Newf must return *XError")
+	}
+
+	return XErrorAs(xerr, ctor)
+}
+
 // Wrap wraps the given error with the given code and message.
-func Wrap(err error, code int, message string) XError {
-	return &Error{
+func Wrap(err error, code int, message string) Error {
+	return &XError{
 		code:       code,
 		message:    message,
 		wrappedErr: err,
 	}
 }
 
+// WrapAs wraps the given error with the given code and message using the given constructor function to create a custom
+// concrete type that embeds [XError] and implements the [Error] interface.
+func WrapAs[T Error]( //nolint:ireturn // T is inferred; constrained to [Error].
+	ctor func(*XError) T,
+	err error,
+	code int,
+	message string,
+) T {
+	xerr, ok := Wrap(err, code, message).(*XError)
+	if !ok {
+		panic("xerrors: Wrap must return *XError")
+	}
+
+	return XErrorAs(xerr, ctor)
+}
+
 // Wrapf wraps the given error with the given code and formatted message.
 //
 // If args is empty, format is used as the literal message (no [fmt.Sprintf] processing), so strings that contain "%"
 // are safe. If args is non-empty, format is passed to [fmt.Sprintf] with args.
-func Wrapf(err error, code int, message string, args ...any) XError {
+func Wrapf(err error, code int, message string, args ...any) Error {
 	msg := message
 	if len(args) > 0 {
 		msg = fmt.Sprintf(message, args...)
 	}
 
-	return &Error{
+	return &XError{
 		code:       code,
 		message:    msg,
 		wrappedErr: err,
 	}
 }
 
+// WrapfAs wraps the given error with the given code and formatted message using the given constructor function to
+// create a custom concrete type that embeds [XError] and implements the [Error] interface.
+//
+// If args is empty, format is used as the literal message (no [fmt.Sprintf] processing), so strings that contain "%"
+// are safe. If args is non-empty, format is passed to [fmt.Sprintf] with args.
+func WrapfAs[T Error]( //nolint:ireturn // T is inferred; constrained to [Error].
+	ctor func(*XError) T,
+	err error,
+	code int,
+	message string,
+	args ...any,
+) T {
+	xerr, ok := Wrapf(err, code, message, args...).(*XError)
+	if !ok {
+		panic("xerrors: Wrapf must return *XError")
+	}
+
+	return XErrorAs(xerr, ctor)
+}
+
+// XErrorAs converts an [XError] to a custom concrete type that embeds [XError] and implements the [Error] interface.
+func XErrorAs[T Error](err *XError, ctor func(*XError) T) T { //nolint:ireturn // T is inferred; constrained to [Error].
+	return ctor(err)
+}
+
 // Attrs returns a shallow copy of attributes associated with the error, or nil if there are none.
 //
 // The copy does not alias the internal map, so mutating the returned map does not change the error; values that are
 // reference types are still shared.
-func (e *Error) Attrs() map[string]any {
+func (e *XError) Attrs() map[string]any {
 	if e.attrs == nil {
 		return nil
 	}
@@ -151,7 +229,7 @@ func (e *Error) Attrs() map[string]any {
 }
 
 // Caller returns the information on where the error was generated.
-func (e *Error) Caller() CallerInfo {
+func (e *XError) Caller() CallerInfo {
 	if e.caller == nil {
 		caller := DefaultCallerInfo()
 
@@ -162,17 +240,17 @@ func (e *Error) Caller() CallerInfo {
 }
 
 // Code returns the error code.
-func (e *Error) Code() int {
+func (e *XError) Code() int {
 	return e.code
 }
 
 // Error returns the error message.
-func (e *Error) Error() string {
+func (e *XError) Error() string {
 	return e.message
 }
 
 // Is returns true if the error matches the wrapped error in this object (if there is one) or false otherwise.
-func (e *Error) Is(err error) bool {
+func (e *XError) Is(err error) bool {
 	if e.wrappedErr == nil {
 		return false
 	}
@@ -181,21 +259,21 @@ func (e *Error) Is(err error) bool {
 }
 
 // MarshalJSON marshals the error to JSON.
-func (e *Error) MarshalJSON() ([]byte, error) {
+func (e *XError) MarshalJSON() ([]byte, error) {
 	enc := jsonError{
 		Caller:  e.caller,
 		Code:    e.code,
 		Message: e.message,
 	}
 	if e.wrappedErr != nil {
-		var wrapped *Error
+		var wrapped *XError
 
 		var env wrappedEnvelope
 
 		var err error
 
 		if errors.As(e.wrappedErr, &wrapped) {
-			env.Kind = wrappedKindXError
+			env.Kind = wrappedKindError
 			env.Nested, err = json.Marshal(wrapped)
 		} else {
 			env.Kind = wrappedKindStd
@@ -225,10 +303,10 @@ func (e *Error) MarshalJSON() ([]byte, error) {
 	return data, nil
 }
 
-// UnmarshalJSON unmarshals JSON produced by [Error.MarshalJSON] (or equivalent) into the receiver.
+// UnmarshalJSON unmarshals JSON produced by [XError.MarshalJSON] (or equivalent) into the receiver.
 //
 // The receiver is reset before fields are populated; [ErrorOptions] are not read from JSON and remain zero.
-func (e *Error) UnmarshalJSON(data []byte) error {
+func (e *XError) UnmarshalJSON(data []byte) error {
 	var payload jsonError
 
 	err := json.Unmarshal(data, &payload)
@@ -236,7 +314,7 @@ func (e *Error) UnmarshalJSON(data []byte) error {
 		return fmt.Errorf(errFmtUnmarshalJSON, err)
 	}
 
-	*e = Error{}
+	*e = XError{}
 
 	e.code = payload.Code
 	e.message = payload.Message
@@ -255,7 +333,7 @@ func (e *Error) UnmarshalJSON(data []byte) error {
 }
 
 // String returns the error (including the code, attributes, caller and wrapped error) represented as a JSON string.
-func (e *Error) String() string {
+func (e *XError) String() string {
 	str, err := e.MarshalJSON()
 	if err != nil {
 		return "failed to marshal error to JSON: " + err.Error()
@@ -265,7 +343,7 @@ func (e *Error) String() string {
 }
 
 // Unwrap returns the wrapped error, if there is one.
-func (e *Error) Unwrap() error {
+func (e *XError) Unwrap() error {
 	if e.wrappedErr == nil {
 		return nil
 	}
@@ -274,7 +352,7 @@ func (e *Error) Unwrap() error {
 }
 
 // WithAttr adds an attribute to the error and returns itself.
-func (e *Error) WithAttr(key string, value any) XError {
+func (e *XError) WithAttr(key string, value any) Error {
 	if e.attrs == nil {
 		e.attrs = make(map[string]any)
 	}
@@ -285,7 +363,7 @@ func (e *Error) WithAttr(key string, value any) XError {
 }
 
 // WithAttrs adds attributes to the error and returns itself.
-func (e *Error) WithAttrs(attrs map[string]any) XError {
+func (e *XError) WithAttrs(attrs map[string]any) Error {
 	if e.attrs == nil {
 		e.attrs = make(map[string]any)
 	}
@@ -302,7 +380,7 @@ func (e *Error) WithAttrs(attrs map[string]any) XError {
 //
 // Be sure to call this method **after** the other With* methods that configure options for the [Error] but before
 // any calls that return error details (such as [Error.Caller], etc.).
-func (e *Error) WithCaller() XError {
+func (e *XError) WithCaller() Error {
 	if e.caller == nil {
 		e.caller = getCallerInfo(e.skipBias+1, e.stripFilePrefixes)
 	}
@@ -320,7 +398,7 @@ func (e *Error) WithCaller() XError {
 //
 // Be sure to call this method **after** the other With* methods that configure options for the [Error] (in case they
 // are not set in the context) but before any calls that return error details (such as [Error.Caller], etc.).
-func (e *Error) WithOptionsFromContext(ctx context.Context) XError {
+func (e *XError) WithOptionsFromContext(ctx context.Context) Error {
 	opts := ErrorOptionsFromContext(ctx)
 	for _, optsFn := range opts {
 		if optsFn != nil {
@@ -338,7 +416,7 @@ func (e *Error) WithOptionsFromContext(ctx context.Context) XError {
 // WithSkipBias sets the stack skip bias for caller capture in an [Error] when caller capture is enabled.
 //
 // The default skip bias is usually sufficient for most use cases.
-func (e *Error) WithSkipBias(bias int) XError {
+func (e *XError) WithSkipBias(bias int) Error {
 	e.skipBias = bias
 
 	return e
@@ -346,14 +424,14 @@ func (e *Error) WithSkipBias(bias int) XError {
 
 // WithStripFilePrefixes sets the list of file path prefixes to strip from the caller file path in an [Error] when
 // caller capture is enabled.
-func (e *Error) WithStripFilePrefixes(prefixes ...string) XError {
+func (e *XError) WithStripFilePrefixes(prefixes ...string) Error {
 	e.stripFilePrefixes = prefixes
 
 	return e
 }
 
 // decodeWrappedErrorJSON decodes the wrapped error JSON into the error object.
-func (e *Error) decodeWrappedErrorJSON(raw json.RawMessage) error {
+func (e *XError) decodeWrappedErrorJSON(raw json.RawMessage) error {
 	var env wrappedEnvelope
 
 	err := json.Unmarshal(raw, &env)
@@ -366,12 +444,12 @@ func (e *Error) decodeWrappedErrorJSON(raw json.RawMessage) error {
 	}
 
 	switch env.Kind {
-	case wrappedKindXError:
+	case wrappedKindError:
 		if len(env.Nested) == 0 {
 			return fmt.Errorf("extended error JSON: %w", errWrappedXErrorNeedsNested)
 		}
 
-		inner := new(Error)
+		inner := new(XError)
 
 		err = inner.UnmarshalJSON(env.Nested)
 		if err != nil {
