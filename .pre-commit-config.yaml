@@ -27,6 +27,15 @@ repos:
     hooks:
       - id: golangci-lint
         name: Run golangci-lint checks
+  - repo: https://github.com/DavidAnson/markdownlint-cli2
+    rev: v0.22.0
+    hooks:
+      - id: markdownlint-cli2
+        name: Run markdownlint checks
+        args:
+          - '--config=.markdownlint.json'
+          - '--fix'
+          - '--glob=**/*.md'
   - repo: local
     hooks:
       - id: sonar-secrets
