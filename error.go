@@ -37,6 +37,16 @@ var (
 //nolint:gochecknoglobals // intentional indirection for tests; default is [json.Marshal].
 var jsonMarshalWrappedEnvelope = json.Marshal
 
+// assertUnderlyingXError extracts [*XError] from values returned by [New], [Newf], [Wrap], and [Wrapf]. Internal tests
+// may replace it to exercise defensive branches in the *As helpers.
+//
+//nolint:gochecknoglobals // intentional indirection for tests.
+var assertUnderlyingXError = func(e Error) (*XError, bool) {
+	x, ok := e.(*XError)
+
+	return x, ok
+}
+
 // XError is an extended error that holds an error code, message, caller information, attributes, and a wrapped error.
 type XError struct {
 	ErrorOptions
@@ -106,7 +116,7 @@ func NewAs[T Error]( //nolint:ireturn // T is inferred; constrained to [Error].
 	code int,
 	message string,
 ) T {
-	xerr, ok := New(code, message).(*XError)
+	xerr, ok := assertUnderlyingXError(New(code, message))
 	if !ok {
 		panic("xerrors: New must return *XError")
 	}
@@ -141,7 +151,7 @@ func NewfAs[T Error]( //nolint:ireturn // T is inferred; constrained to [Error].
 	format string,
 	args ...any,
 ) T {
-	xerr, ok := Newf(code, format, args...).(*XError)
+	xerr, ok := assertUnderlyingXError(Newf(code, format, args...))
 	if !ok {
 		panic("xerrors: Newf must return *XError")
 	}
@@ -166,7 +176,7 @@ func WrapAs[T Error]( //nolint:ireturn // T is inferred; constrained to [Error].
 	code int,
 	message string,
 ) T {
-	xerr, ok := Wrap(err, code, message).(*XError)
+	xerr, ok := assertUnderlyingXError(Wrap(err, code, message))
 	if !ok {
 		panic("xerrors: Wrap must return *XError")
 	}
@@ -203,7 +213,7 @@ func WrapfAs[T Error]( //nolint:ireturn // T is inferred; constrained to [Error]
 	message string,
 	args ...any,
 ) T {
-	xerr, ok := Wrapf(err, code, message, args...).(*XError)
+	xerr, ok := assertUnderlyingXError(Wrapf(err, code, message, args...))
 	if !ok {
 		panic("xerrors: Wrapf must return *XError")
 	}

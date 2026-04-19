@@ -66,6 +66,45 @@ func TestNewAs_NewfAs_WrapAs_WrapfAs(t *testing.T) {
 	}
 }
 
+func TestXErrorAs(t *testing.T) {
+	t.Parallel()
+
+	base := mustErrPtr(t, xerrors.New(7, "base"))
+
+	out := xerrors.XErrorAs(base, func(e *xerrors.XError) *notFoundTestError {
+		return &notFoundTestError{XError: e}
+	})
+	if out.Code() != 7 || out.Error() != "base" {
+		t.Fatalf("unexpected XErrorAs: code=%d msg=%q", out.Code(), out.Error())
+	}
+}
+
+func TestNewfAs_NoArgsUsesLiteralFormat(t *testing.T) {
+	t.Parallel()
+
+	const want = "literal plaintext without fmt verbs"
+
+	got := xerrors.NewfAs(func(e *xerrors.XError) *notFoundTestError {
+		return &notFoundTestError{XError: e}
+	}, 201, want)
+	if got.Error() != want {
+		t.Fatalf("got %q, want %q", got.Error(), want)
+	}
+}
+
+func TestWrapfAs_NoArgsUsesLiteralMessage(t *testing.T) {
+	t.Parallel()
+
+	const want = "literal plaintext without fmt verbs"
+
+	got := xerrors.WrapfAs(func(e *xerrors.XError) *notFoundTestError {
+		return &notFoundTestError{XError: e}
+	}, errTestBase, 202, want)
+	if got.Error() != want {
+		t.Fatalf("got %q, want %q", got.Error(), want)
+	}
+}
+
 func TestNew_Newf_Code_Error(t *testing.T) {
 	t.Parallel()
 
