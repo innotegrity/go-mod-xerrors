@@ -15,4 +15,7 @@
     "go.testFlags": [
         "-covermode=atomic"
     ],
+    "files.associations": {
+        "*.mdc": "markdown"
+    }
 }

@@ -33,9 +33,9 @@ repos:
       - id: markdownlint-cli2
         name: Run markdownlint checks
         args:
-          - '--config=.markdownlint.json'
           - '--fix'
           - '--glob=**/*.md'
+          - '--glob=**/*.mdc'
   - repo: local
     hooks:
       - id: sonar-secrets
