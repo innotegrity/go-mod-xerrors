@@ -5,6 +5,13 @@ linters:
   disable:
     - exhaustruct
     - wsl
+  exclusions:
+    paths:
+      - _test.go
+      - _mock.go
+      - _gen.go
+      - _generated.go
+      - _generated_test.go
   settings:
     cyclop:
       max-complexity: 20
