@@ -24,5 +24,5 @@ First off, thank you for considering contributing! It's people like you that mak
 
 ## Style Guide
 
-- Please follow the [Language/Style, e.g., PEP8 for Python] guidelines and use the linters and formatters as outlined by the repository `README.md` file.
+- Please follow standard Go style guidelines and use the linters and formatters as outlined by the repository `README.md` file.
 - Keep commit messages concise and descriptive.
