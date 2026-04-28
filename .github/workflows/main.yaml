@@ -10,7 +10,7 @@ on:
 
 env:
   SONARQUBE_ORGANIZATION: 'innotegrity'
-  SONARQUBE_PROJECT_KEY: 'innotegrity_go-mod-xerrors'
+  SONARQUBE_PROJECT_KEY: 'go-mod-xerrors'
   SONARQUBE_SOURCE_DIR: '.'
 
 jobs:

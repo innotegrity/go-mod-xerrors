@@ -25,8 +25,8 @@
     <br />
     <a href="https://pkg.go.dev/go.innotegrity.dev/mod/xerrors" target="_blank"><img src="https://img.shields.io/badge/go-reference-2a7d98?style=for-the-badge" alt="Go Reference" /></a>
     <a href="https://goreportcard.com/report/go.innotegrity.dev/mod/xerrors" target="_blank"><img src="https://goreportcard.com/badge/go.innotegrity.dev/mod/xerrors?style=for-the-badge" alt="Go Report Card" /></a>
-    <a href="https://sonarcloud.io/project/overview?id=innotegrity_go-mod-xerrors" target="_blank"><img src="https://img.shields.io/sonar/coverage/innotegrity_go-mod-xerrors?server=https://sonarcloud.io&style=for-the-badge&label=Code%20Coverage" alt="Code Coverage" /></a>
-    <a href="https://sonarcloud.io/project/overview?id=innotegrity_go-mod-xerrors" target="_blank"><img src="https://img.shields.io/sonar/quality_gate/innotegrity_go-mod-xerrors?server=https://sonarcloud.io&style=for-the-badge&label=Code%20Quality" alt="Code Quality" /></a>
+    <a href="https://sonarcloud.io/project/overview?id=go-mod-xerrors" target="_blank"><img src="https://img.shields.io/sonar/coverage/go-mod-xerrors?server=https://sonarcloud.io&style=for-the-badge&label=Code%20Coverage" alt="Code Coverage" /></a>
+    <a href="https://sonarcloud.io/project/overview?id=go-mod-xerrors" target="_blank"><img src="https://img.shields.io/sonar/quality_gate/go-mod-xerrors?server=https://sonarcloud.io&style=for-the-badge&label=Code%20Quality" alt="Code Quality" /></a>
   </p>
 </div>
 
